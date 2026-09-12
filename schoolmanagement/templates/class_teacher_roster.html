@@ -1,0 +1,250 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Master Class Roster & Performance Matrix{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid p-0">
+    
+    <!-- Header Summary Block -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <span class="text-muted small fw-semibold text-uppercase tracking-wider">Class Custodian Panel</span>
+            <h2 class="fw-bold mb-0 text-dark">Master Roster: Class {{ class_name }}</h2>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            <button id="btnCalculate" class="btn btn-primary rounded-3 fw-bold py-2 px-4 shadow-sm" style="background: linear-gradient(135deg, #0d6efd, #0dcaf0); border: none;">
+                <i class="bi bi-cpu-fill"></i> Calculate Aggregates & Ranks
+            </button>
+        </div>
+    </div>
+
+    <!-- Live Classroom Health Summary Widgets -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-sm-3">
+            <div class="p-3 bg-white rounded-4 border shadow-sm text-center" style="border-color: #e2e8f0 !important;">
+                <span class="text-muted small fw-bold text-uppercase d-block mb-1">Total Students</span>
+                <h3 class="fw-bold mb-0 text-dark">{{ students | length }}</h3>
+            </div>
+        </div>
+        <div class="col-6 col-sm-3">
+            <div class="p-3 bg-white rounded-4 border shadow-sm text-center" style="border-color: #e2e8f0 !important;">
+                <span class="text-muted small fw-bold text-uppercase d-block mb-1">Tracked Subjects</span>
+                <h3 class="fw-bold mb-0 text-success">{{ subjects | length }}</h3>
+            </div>
+        </div>
+        <div class="col-6 col-sm-3">
+            <div class="p-3 bg-white rounded-4 border shadow-sm text-center" style="border-color: #e2e8f0 !important;">
+                <span class="text-muted small fw-bold text-uppercase d-block mb-1">Active Exams</span>
+                <h3 class="fw-bold mb-0 text-info">{{ exams | length }}</h3>
+            </div>
+        </div>
+        <div class="col-6 col-sm-3">
+            <div class="p-3 bg-white rounded-4 border shadow-sm text-center" style="border-color: #e2e8f0 !important;">
+                <span class="text-muted small fw-bold text-uppercase d-block mb-1">Class Position</span>
+                <h3 class="fw-bold mb-0 text-warning" id="rankBadge">-</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Master Interactive Data Matrix Grid -->
+    <div class="card border-0 shadow-sm p-4 rounded-4 bg-white mb-4" style="border: 1px solid #e2e8f0 !important;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-nowrap text-center" id="rosterMatrixTable">
+                <thead class="table-light text-secondary small fw-bold text-uppercase">
+                    <tr>
+                        <th class="ps-3 py-3">Roll No</th>
+                        <th>Admission No</th>
+                        <th class="text-start">Student Full Name</th>
+                        <th>Date of Birth</th>
+                        <th>Academic Year</th>
+                        <th class="text-primary fw-bold bg-primary bg-opacity-10 virtual-header d-none">Grand Total</th>
+                        <th class="text-success fw-bold bg-success bg-opacity-10 virtual-header d-none">Average %</th>
+                        <th class="text-warning fw-bold bg-warning bg-opacity-10 virtual-header d-none">Class Rank</th>
+                        <th class="text-end pe-4">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                        <tr data-student-id="{{ student.admission_no }}">
+                            <!-- 1. Roll No Column -->
+                            <td class="ps-3 fw-bold text-secondary">
+                                <span class="view-mode-{{ student.admission_no }}">#{{ "%02d" | format(student.roll_no if student.roll_no else 0) }}</span>
+                                <input type="number" form="form-{{ student.admission_no }}" name="roll_no" class="form-control form-control-sm text-center font-monospace edit-mode-{{ student.admission_no }} d-none" value="{{ student.roll_no if student.roll_no else '' }}" style="max-width: 80px; margin: 0 auto;">
+                            </td>
+
+                            <!-- 2. Admission No Column -->
+                            <td class="font-monospace text-muted">
+                                <span class="view-mode-{{ student.admission_no }} text-uppercase">{{ student.admission_no }}</span>
+                                <input type="text" form="form-{{ student.admission_no }}" name="admission_no" class="form-control form-control-sm text-center text-uppercase font-monospace edit-mode-{{ student.admission_no }} d-none" value="{{ student.admission_no }}" style="max-width: 120px; margin: 0 auto;" required>
+                            </td>
+
+                            <!-- 3. Full Name Column -->
+                            <td class="text-start">
+                                <span class="view-mode-{{ student.admission_no }} fw-semibold text-dark">{{ student.name }}</span>
+                                <input type="text" form="form-{{ student.admission_no }}" name="name" class="form-control form-control-sm edit-mode-{{ student.admission_no }} d-none" value="{{ student.name }}" required>
+                            </td>
+
+                            <!-- 4. Date of Birth Column -->
+                            <td>
+                                <span class="view-mode-{{ student.admission_no }} text-secondary">{{ student.dob if student.dob else '-' }}</span>
+                                <input type="date" form="form-{{ student.admission_no }}" name="dob" class="form-control form-control-sm edit-mode-{{ student.admission_no }} d-none" value="{{ student.dob if student.dob else '' }}" style="max-width: 150px; margin: 0 auto;">
+                            </td>
+
+                            <!-- 5. Academic Year Column -->
+                            <td>
+                                <span class="view-mode-{{ student.admission_no }} badge bg-secondary bg-opacity-10 text-secondary font-monospace fs-8 px-2">{{ student.academic_year if student.academic_year else '-' }}</span>
+                                <input type="text" form="form-{{ student.admission_no }}" name="academic_year" class="form-control form-control-sm text-center edit-mode-{{ student.admission_no }} d-none" value="{{ student.academic_year if student.academic_year else '' }}" style="max-width: 100px; margin: 0 auto;">
+                            </td>
+
+                            <!-- Virtual calculation fields placeholders (Keep untouched) -->
+                            <td class="fw-bold text-primary bg-primary bg-opacity-10 virtual-cell d-none total-cell">0</td>
+                            <td class="fw-bold text-success bg-success bg-opacity-10 virtual-cell d-none avg-cell">0.0%</td>
+                            <td class="fw-bold text-warning bg-warning bg-opacity-10 virtual-cell d-none rank-cell">-</td>
+
+                            <!-- ACTION BUTTONS CELL -->
+                            
+                            <td class="text-end pe-4">
+                                <!-- View Mode Button Container -->
+                                <div class="view-mode-{{ student.admission_no }}">
+                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-2 px-3 py-1" onclick="toggleEditMode('{{ student.admission_no }}', true)">
+                                        <i class="bi bi-pencil-square me-1"></i>Edit
+                                    </button>
+                                </div>
+                                
+                                <!-- Edit Mode Button Container -->
+                                <div class="edit-mode-{{ student.admission_no }} d-none">
+                                    <form action="{{ url_for('edit_student_info', admission_no=student.admission_no) }}" method="POST" id="form-{{ student.admission_no }}" class="d-inline" onsubmit="injectCsrfBeforeSubmit(this)">
+                                        <input type="hidden" name="csrf_token" class="dynamic-csrf-field" value="">
+                                        <button type="submit" class="btn btn-sm btn-success rounded-2 px-3 py-1 me-1">
+                                            <i class="bi bi-check-lg me-1"></i>Save
+                                        </button>
+                                    </form>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-2 px-2 py-1" onclick="toggleEditMode('{{ student.admission_no }}', false)">
+                                        Cancel
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center py-5 text-muted">
+                                <i class="bi bi-people-fill fs-2 d-block mb-2 text-black-50" style="opacity: 0.3;"></i>
+                                No student directory records found inside this classroom division.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Safe injection of Flask JSON marks context mapping dictionary
+    const marksData = {{ marks_json | safe }};
+    
+    document.getElementById('btnCalculate').addEventListener('click', function() {
+        // 1. Reveal all hidden structural headers and cells instantly
+        document.querySelectorAll('.virtual-header, .virtual-cell').forEach(el => el.classList.remove('d-none'));
+        
+        const rows = document.querySelectorAll('#rosterMatrixTable tbody tr');
+        let computedStudents = [];
+        rows.forEach(row => {
+            const admNo = row.getAttribute('data-student-id');
+            if (!admNo) return;
+
+            let grandTotal = 0;
+            let entryCount = 0;
+            if (marksData[admNo]) {
+                for (const subId in marksData[admNo]) {
+                    for (const examId in marksData[admNo][subId]) {
+                        const score = parseFloat(marksData[admNo][subId][examId]);
+                        if (!isNaN(score)) {
+                            grandTotal += score;
+                            entryCount++;
+                        }
+                    }
+                }
+            }
+            let average = entryCount > 0 ? (grandTotal / entryCount) : 0;
+
+            // Update individual layout cells visually
+            row.querySelector('.total-cell').textContent = grandTotal.toFixed(1);
+            row.querySelector('.avg-cell').textContent = average.toFixed(1) + '%';
+
+            // Push to array to enable structural ranking sorting logic
+            computedStudents.push({
+                rowElement: row,
+                totalScore: grandTotal,
+                admissionNo: admNo
+            });
+        });
+
+        // 3. Sort students based on total scores down to compute rankings
+        computedStudents.sort((a, b) => b.totalScore - a.totalScore);
+
+        // 4. Assign positional ranks dynamically, handling identical scores smoothly
+        let currentRank = 1;
+        for (let i = 0; i < computedStudents.length; i++) {
+            if (i > 0 && computedStudents[i].totalScore < computedStudents[i - 1].totalScore) {
+                currentRank = i + 1;
+            }
+            computedStudents[i].rowElement.querySelector('.rank-cell').textContent = 'Rank ' + currentRank;
+        }
+
+        // 5. Update the top status indicator badge widget
+        document.getElementById('rankBadge').textContent = 'Calculated';
+        this.innerHTML = '<i class="bi bi-check-all"></i> Aggregates Synchronized';
+        this.classList.replace('btn-primary', 'btn-success');
+    });
+
+    //  INLINE LAYOUT MODE SWITCHER TOGGLE
+    function toggleEditMode(studentId, isEditing) {
+        const viewElements = document.querySelectorAll(`.view-mode-${studentId}`);
+        const editElements = document.querySelectorAll(`.edit-mode-${studentId}`);
+        const row = document.querySelector(`tr[data-student-id] input[form="form-${studentId}"]`)?.closest('tr');
+
+        if (isEditing) {
+            // 1. Store the original pristine values inside the inputs before the user types anything
+            if (row) {
+                row.querySelectorAll('input[form]').forEach(input => {
+                    input.setAttribute('data-original-val', input.value);
+                });
+            }
+            
+            // 2. Switch visual states
+            viewElements.forEach(el => el.classList.add('d-none'));
+            editElements.forEach(el => el.classList.remove('d-none'));
+        } else {
+            // 3. CANCEL TRIGGERED: Revert all inputs back to their exact original values
+            if (row) {
+                row.querySelectorAll('input[form]').forEach(input => {
+                    const originalVal = input.getAttribute('data-original-val');
+                    if (originalVal !== null) {
+                        input.value = originalVal;
+                    }
+                });
+            }
+
+            // 4. Switch visual states back to standard read-only view
+            viewElements.forEach(el => el.classList.remove('d-none'));
+            editElements.forEach(el => el.classList.add('d-none'));
+        }
+    }
+    function injectCsrfBeforeSubmit(formElement) {
+        // Look up the system meta token we registered in dashboard_base.html
+        const metaToken = document.querySelector('meta[name="csrf-token"]');
+        
+        if (metaToken) {
+            const tokenValue = metaToken.getAttribute('content');
+            // Find the hidden field within this specific row form and inject it safely
+            formElement.querySelector('.dynamic-csrf-field').value = tokenValue;
+        } else {
+            console.error("CSRF security context token missing from document head mapping layout.");
+        }
+    }
+</script>
+{% endblock %}

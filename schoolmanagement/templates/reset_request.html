@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Forgot Password</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+        <style>
+            body{
+                min-height:100vh;
+                background:linear-gradient(120deg,#e6ed12,#e67e22);
+            }
+            .card-header{
+                background:linear-gradient(120deg,#ed7c12,#f0bf0d);
+            }
+            button{
+                background:linear-gradient(120deg,#f0bf0d,#ed7c12);
+                color: white !important;
+            }
+            .card{
+                border-color: #f04d0d;
+            }
+            .btn:hover{
+                transform: translateY(-3px);
+                transition:0.3s;
+            }
+            
+            .alert-custom-error {
+                background-color: #f8d7da;
+                border-color: #f04d0d;
+                color: #721c24;
+            }
+            .alert-custom-success {
+                background-color: #d4edda;
+                border-color: #ed7c12;
+                color: #155724;
+            }
+            .customcard{
+            background-color: #e6ece7;
+
+        }
+        </style>
+    </head>
+    <body class="d-flex justify-content-center align-items-center">
+
+        <div class="card shadow-lg customcard border-2 rounded-4 " style="width: 28rem;">
+            <div class="card-header text-white text-center py-4 rounded-top-4">
+                <h3 class="mb-0">Forgot Password</h3>
+            </div>
+            <div class="card-body p-4">                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-custom-{{ 'success' if category == 'success' else 'error' }} alert-dismissible fade show mb-3 rounded-3" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="background:none; color:inherit; transform:none;"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+                <p class="text-muted text-center mb-4">
+                    Enter your registered email and account type to receive a password reset link.
+                </p>
+
+                <form method="POST">
+                    <div class="form-floating mb-3">
+                        <select class="form-select" id="role" name="role" required>
+                            <option selected value="teacher">Teacher</option>
+                            <option value="class_teacher">Class Teacher</option>
+                            <option value="principal">Principal</option>
+                        </select>
+                        <label for="role">Account Type</label>
+                    </div>
+                    <div class="form-floating mb-4">
+                        <input type="email" class="form-control" id="email" name="email" placeholder="Email" required>
+                        <label for="email">Email Address</label>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-lg rounded-3">
+                            Send Reset Link
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+</html>

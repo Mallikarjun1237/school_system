@@ -1,0 +1,80 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Class {{ class_name }} Roster{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid p-0">
+    
+    <!-- Header Block Info -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div>
+            <span class="text-muted small fw-semibold text-uppercase tracking-wider">Classroom Rosters</span>
+            <h2 class="fw-bold mb-0 text-dark">Class Student Directory: {{ class_name }}</h2>
+        </div>
+        <div class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-3 fs-6">
+            <i class="bi bi-person-video3"></i> Total Enrolled: {{ students | length }}
+        </div>
+    </div>
+
+    <!-- Roster Grid Content Card -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background: #ffffff; border: 1px solid #e2e8f0 !important;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="min-width: 600px;">
+                <thead style="background-color: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+                    <tr>
+                        <th class="ps-4 py-3 text-secondary small fw-bold text-uppercase" style="width: 15%;">Roll No</th>
+                        <th class="py-3 text-secondary small fw-bold text-uppercase" style="width: 25%;">Admission ID</th>
+                        <th class="py-3 text-secondary small fw-bold text-uppercase">Full Student Name</th>
+                        <th class="py-3 text-secondary small fw-bold text-uppercase" style="width: 25%;">Academic Year</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if students %}
+                        {% for s in students %}
+                            <tr>
+                                <td class="ps-4 fw-bold text-primary">{{ s.roll_no if s.roll_no else '--' }}</td>
+                                <td class="fw-medium text-dark"><code>{{ s.admission_no }}</code></td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <i class="bi bi-person text-secondary"></i>
+                                        </div>
+                                        <span class="fw-semibold text-dark">{{ s.name }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-secondary border border-light px-2.5 py-1.5 fw-medium">
+                                        {{ s.academic_year if s.academic_year else '2026' }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center py-5 text-muted">
+                                <i class="bi bi-people fs-1 d-block mb-2 text-black-50" style="opacity: 0.3;"></i>
+                                No student records found enrolled inside Class {{ class_name }} yet.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Keep the "My Classes" sidebar accordion menu slid open when viewing a class roster page
+    window.addEventListener('DOMContentLoaded', () => {
+        const myClassesCollapse = new bootstrap.Collapse(document.getElementById('myClassesCollapse'), {
+            toggle: false
+        });
+        myClassesCollapse.show();
+        
+        // Mark the active structural trigger link state visually
+        document.getElementById('my-classes-dropdown-trigger').classList.add('active');
+    });
+</script>
+{% endblock %}

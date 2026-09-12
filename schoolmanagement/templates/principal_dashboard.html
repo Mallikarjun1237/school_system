@@ -1,0 +1,57 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Principal Control Panel Portal{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid p-0">
+    
+    <!-- Welcoming Header Jumbotron Panel -->
+    <div class="p-4 p-md-5 mb-4 rounded-4 bg-dark text-white shadow-sm position-relative overflow-hidden" 
+         style="background: linear-gradient(135deg, #1e293b, #0f172a);">
+        <div class="col-md-8 position-relative" style="z-index: 2;">
+            <span class="badge bg-primary px-3 py-1.5 rounded-pill mb-3 text-uppercase tracking-wider fw-bold">Administrative Command</span>
+            <h1 class="display-5 fw-bold text-white mb-2">Welcome back, {{ current_user.name }}</h1>
+            <p class="lead text-white-50 mb-0">You are securely logged into the institution control environment hub. Manage academic infrastructure, balance faculty assignments, and track student growth progress indicators from your sidebar toolkit panel.</p>
+        </div>
+        <!-- Decorative subtle icon design in background -->
+        <i class="bi bi-shield-check text-white position-absolute row" style="font-size: 14rem; right: 20px; bottom: -50px; opacity: 0.04; z-index: 1;"></i>
+    </div>
+
+    <!-- Tier 2 Summary Quick Link Guidance Rows -->
+    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-lightning-charge-fill text-warning"></i> Administrative Administrative Shortcuts</h5>
+    <div class="row g-4">
+        
+        <!-- Shortcut 1: Manage Allocations Mapping Sheet -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white h-100 text-center" style="border: 1px solid #e2e8f0 !important;">
+                <div class="fs-1 text-primary mb-2"><i class="bi bi-people-fill"></i></div>
+                <h5 class="fw-bold text-dark mb-1">Staff Allocations</h5>
+                <p class="text-muted small mb-3">Deploy or clear active class sections and subject mapping allocations assigned to teachers.</p>
+                <a href="{{ url_for('principal_allocations') }}" class="btn btn-sm btn-outline-primary rounded-3 px-3 fw-bold mt-auto">Open Assignment Panel</a>
+            </div>
+        </div>
+
+        <!-- Shortcut 2: Manage Infrastructure Catalog Form -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white h-100 text-center" style="border: 1px solid #e2e8f0 !important;">
+                <div class="fs-1 text-success mb-2"><i class="bi bi-journal-bookmark-fill"></i></div>
+                <h5 class="fw-bold text-dark mb-1">Academic Infrastructures</h5>
+                <p class="text-muted small mb-3">Add new classroom blocks, register courses into the subject listings, or initiate fresh exam cycles.</p>
+                <a href="{{ url_for('principal_academic_setup') }}" class="btn btn-sm btn-outline-success rounded-3 px-3 fw-bold mt-auto">Open Setup Config</a>
+            </div>
+        </div>
+
+        <!-- Shortcut 3: School Operational Health Metrics Hub Chart Graphs -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white h-100 text-center" style="border: 1px solid #e2e8f0 !important;">
+                <div class="fs-1 text-info mb-2"><i class="bi bi-speedometer2"></i></div>
+                <h5 class="fw-bold text-dark mb-1">Analytics Command</h5>
+                <p class="text-muted small mb-3">Review dynamic enrollment trends, grade distributions, and evaluate overall growth across active classrooms.</p>
+                <a href="{{ url_for('principal_analytics') }}" class="btn btn-sm btn-outline-info rounded-3 px-3 fw-bold mt-auto">Open Data Hub</a>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

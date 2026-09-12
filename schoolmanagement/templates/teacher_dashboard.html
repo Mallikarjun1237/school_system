@@ -1,0 +1,375 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Teacher Gradebook{% endblock %}
+
+{% block extra_css %}
+<style>
+    .config-card {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+    }
+
+    .gradebook-container {
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+    }
+
+    .excel-table th {
+        background-color: #f8fafc;
+        color: #64748b;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 600;
+        padding: 1rem;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .excel-table td {
+        vertical-align: middle;
+        padding: 0.5rem 1rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    /* Excel-style Input styling */
+    .excel-input {
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 0.4rem 0.75rem;
+        width: 100%;
+        max-width: 150px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        text-align: right;
+    }
+
+    .excel-input:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+        outline: none;
+    }
+
+    /* Green glow indicator for already uploaded/saved data rows */
+    .row-saved .excel-input {
+        border: 2px solid #198754 !important;
+        background-color: rgba(25, 135, 84, 0.02);
+        color: #198754;
+    }
+
+    .row-saved .excel-input:focus {
+        box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.15);
+    }
+
+    .sticky-footer {
+        position: sticky;
+        bottom: 0;
+        background: #ffffff;
+        border-top: 1px solid #e2e8f0;
+        padding: 1rem 1.5rem;
+        z-index: 10;
+        box-shadow: 0 -4px 15px rgba(0,0,0,0.03);
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid p-0">
+
+    <!-- Stage A: The Configuration Selection Bar -->
+    <div class="card config-card shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                <i class="bi bi-sliders text-primary"></i> Gradebook Configurations
+            </h5>
+            
+            <form id="configForm" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted">Class / Section</label>
+                    <select class="form-select rounded-3" id="select-class" required>
+                        <option value="" selected disabled>Choose Class...</option>
+                        {% for assign in assignments %}
+                            <option value="{{ assign.class_name }}">{{ assign.class_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted">Subject</label>
+                    <select class="form-select rounded-3" id="select-subject" required disabled>
+                        <option value="" selected disabled>Select Class first...</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label small fw-bold text-muted">Exam Type</label>
+                    <select class="form-select rounded-3" id="select-exam" required disabled>
+                        <option value="" selected disabled>Select Subject first...</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3 d-flex gap-2">
+                    <button type="button" class="btn btn-primary w-100 py-2.5 fw-bold rounded-3 shadow-sm" id="btn-load" disabled>
+                        <i class="bi bi-arrow-clockwise"></i> Load Sheet
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary py-2.5 rounded-3" id="btn-modal-trigger" data-bs-toggle="modal" data-bs-target="#uploadModal" title="Bulk Upload Excel">
+                        <i class="bi bi-file-earmark-excel-fill text-success"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Stage B: The Excel Live Editing Grid Container (Hidden by default until loaded) -->
+    <div class="gradebook-container d-none" id="gradebook-panel">
+        <form id="marksForm" method="POST" action="/grades/save">
+            <!-- Context identifiers passed quietly down to backend -->
+            <input type="hidden" name="class_id" id="hidden-class">
+            <input type="hidden" name="subject_id" id="hidden-subject">
+            <input type="hidden" name="exam_id" id="hidden-exam">
+
+            <div class="table-responsive">
+                <table class="table excel-table mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">Student ID</th>
+                            <th style="width: 15%;">Roll No</th>
+                            <th>Student Name</th>
+                            <th style="width: 25%; text-align: right;">Marks Obtained (Max: 100)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="student-grid-body">
+                        <!-- Loaded dynamically via JavaScript AJAX -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Stage C: The Smart Sticky Footer Controls -->
+            <div class="sticky-footer d-flex justify-content-between align-items-center">
+                <div class="small text-muted" id="grid-status-text">
+                    Displaying 0 student records.
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-warning fw-bold px-4 rounded-3 text-dark d-none" id="btn-edit">
+                        <i class="bi bi-pencil-square"></i> Edit Marks Sheet
+                    </button>
+                    <button type="submit" class="btn btn-success fw-bold px-4 rounded-3 shadow-sm" id="btn-save" disabled>
+                        <i class="bi bi-cloud-check-fill"></i> Save & Commit Changes
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bulk Excel Upload Modal Layer -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow rounded-4">
+            <div class="modal-header border-bottom-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-cloud-arrow-up-fill text-primary"></i> Bulk Excel Import</h5>
+                <button type="button" class="btn-close" data-bs-target="#uploadModal" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/grades/upload" method="POST" enctype="multipart/form-data">
+                <div class="modal-body px-4 pb-4">
+                    <p class="text-muted small mb-4">
+                        Upload a structured spreadsheet containing grades. Ensure your columns exactly match our alignment keys.
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Select Target File (.xlsx, .xls)</label>
+                        <input class="form-control rounded-3" type="file" name="excel_file" accept=".xlsx, .xls" required>
+                    </div>
+                    <div class="bg-light p-3 rounded-3 mb-2 d-flex align-items-center justify-content-between">
+                        <span class="small text-secondary fw-medium">Need the structural format?</span>
+                        <!-- Inside the Upload Modal in teacher_dashboard.html -->
+                        <a href="{{ url_for('download_excel_template') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-download"></i> Download Excel Template
+                        </a>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-3 fw-medium" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-success rounded-3 fw-bold px-4">Upload and Parse</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const classSelect = document.getElementById('select-class');
+    const subjectSelect = document.getElementById('select-subject');
+    const examSelect = document.getElementById('select-exam');
+    const loadBtn = document.getElementById('btn-load');
+    const gridBody = document.getElementById('student-grid-body');
+
+    // 1. Listen for Class selection to fetch matching Subjects and Exams
+    classSelect.addEventListener('change', async () => {
+        const className = classSelect.value;
+        if (!className) return;
+
+        try {
+            const response = await fetch(`/api/get_subjects_and_exams/${className}`);
+            const data = await response.json();
+            
+            // Populate Subjects dropdown
+            subjectSelect.innerHTML = '<option value="" selected disabled>Choose Subject...</option>';
+            data.subjects.forEach(s => {
+                subjectSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+            });
+            subjectSelect.disabled = false;
+            
+            // Populate Exams dropdown
+            examSelect.innerHTML = '<option value="" selected disabled>Choose Exam...</option>';
+            data.exams.forEach(e => {
+                examSelect.innerHTML += `<option value="${e.id}">${e.name}</option>`;
+            });
+            
+            // Fixed: Reset states cleanly when resetting parent classes selection rows
+            examSelect.disabled = true; 
+            loadBtn.disabled = true;
+            
+        } catch (error) {
+            console.error("Error fetching configurations:", error);
+        }
+    });
+
+    // 2. Enable Exams dropdown once a Subject is picked
+    subjectSelect.addEventListener('change', () => {
+        if (subjectSelect.value) {
+            examSelect.disabled = false; // Now works perfectly without getting overridden
+        }
+    });
+
+    // 3. Enable the Load Sheet button once an Exam type is picked
+    examSelect.addEventListener('change', () => { 
+        if (examSelect.value) {
+            loadBtn.disabled = false; 
+        }
+    });
+
+    // 4. Load the Student Grid Roster and map values into the spreadsheet inputs
+    loadBtn.addEventListener('click', async () => {
+        const classId = classSelect.value;
+        const subjectId = subjectSelect.value;
+        const examId = examSelect.value;
+
+        // Set hidden form parameters for the final submission layer
+        document.getElementById('hidden-class').value = classId;
+        document.getElementById('hidden-subject').value = subjectId;
+        document.getElementById('hidden-exam').value = examId;
+
+        try {
+            const response = await fetch('/api/load_grade_sheet', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    class_name: classId,
+                    subject_id: subjectId,
+                    exam_id: examId
+                })
+            });
+            const data = await response.json();
+            
+            gridBody.innerHTML = '';
+            let hasSavedData = false;
+
+            data.students.forEach(s => {
+                const rowClass = s.is_saved ? 'class="row-saved"' : '';
+                const valueAttr = s.marks_obtained !== null ? `value="${s.marks_obtained}"` : '';
+                const disabledAttr = s.is_saved ? 'disabled' : '';
+                if (s.is_saved) hasSavedData = true;
+                
+                gridBody.innerHTML += `
+                    <tr ${rowClass}>
+                        <td>${s.admission_no}</td>
+                        <td>${s.roll_no}</td>
+                        <td>${s.name}</td>
+                        <td align="right">
+                            <input type="number" step="0.01" name="marks_${s.admission_no}" 
+                                   class="excel-input" ${valueAttr} max="100" min="0" ${disabledAttr}>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            // Reveal the gradebook panel grid space
+            document.getElementById('gradebook-panel').classList.remove('d-none');
+            document.getElementById('grid-status-text').textContent = `Displaying ${data.students.length} student records.`;
+            
+            // Show the edit button only if existing saved marks were loaded
+            const editBtn = document.getElementById('btn-edit');
+            if (hasSavedData) {
+                editBtn.classList.remove('d-none');
+            } else {
+                editBtn.classList.add('d-none');
+            }
+            
+            document.getElementById('btn-save').disabled = false;
+            setupCellValidationListeners();
+            setupExcelKeyboardNavigation();
+        } catch (error) {
+            console.error("Error loading grade sheet data:", error);
+        }
+    });
+
+    // 5. Toggle the edit mode lock to allow modifications to saved values
+    document.getElementById('btn-edit').addEventListener('click', function() {
+        document.querySelectorAll('.excel-input').forEach(input => input.disabled = false);
+        this.classList.add('d-none');
+    });
+
+    // 6. Excel Keyboard Navigation Engine (Enter/Up/Down directional movements)
+    function setupExcelKeyboardNavigation() {
+        const inputs = Array.from(document.querySelectorAll('.excel-input'));
+        inputs.forEach((input, index) => {
+            input.addEventListener('keydown', (e) => {
+                let targetIndex = -1;
+                if (e.key === 'Enter' || e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    targetIndex = index + 1;
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    targetIndex = index - 1;
+                }
+                if (targetIndex >= 0 && targetIndex < inputs.length) {
+                    inputs[targetIndex].focus();
+                    inputs[targetIndex].select();
+                }
+            });
+        });
+    }
+    function setupCellValidationListeners() {
+        const inputs = document.querySelectorAll('.excel-input');
+        
+        inputs.forEach(input => {
+            // Triggers instantly whenever the teacher types or changes a number value
+            input.addEventListener('input', function() {
+                let val = parseFloat(this.value);
+                
+                if (this.value === '') return; // Allow clear empty entries
+
+                // Block scores greater than 100
+                if (val > 100) {
+                    alert(`Validation Alert: Marks cannot exceed the maximum ceiling limit of 100.`);
+                    this.value = 100;
+                    this.focus();
+                } 
+                // Block scores less than 0
+                else if (val < 0) {
+                    alert(`Validation Alert: Input scores cannot drop below 0.`);
+                    this.value = 0;
+                    this.focus();
+                }
+            });
+        });
+    }
+</script>
+
+{% endblock %}
