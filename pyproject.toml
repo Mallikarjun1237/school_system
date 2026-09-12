@@ -1,2 +1,15 @@
+[project]
+name = "school-system"
+version = "1.0.0"
+requires-python = ">=3.12"
+dependencies = [
+    "Flask",
+    "Flask-SQLAlchemy",
+    "Flask-Migrate",
+    "Flask-Mail",
+    "python-dotenv",
+    "psycopg"
+]
+
 [tool.vercel]
 entrypoint = "run:app"
