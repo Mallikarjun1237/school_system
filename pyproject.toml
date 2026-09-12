@@ -3,13 +3,31 @@ name = "school-system"
 version = "1.0.0"
 requires-python = ">=3.12"
 dependencies = [
-    "Flask",
-    "Flask-SQLAlchemy",
-    "Flask-Migrate",
-    "Flask-Mail",
-    "python-dotenv",
-    "psycopg",
-    "Flask-Login"
+    "alembic==1.20.0",
+    "blinker==1.9.0",
+    "click==8.5.0",
+    "dotenv==0.9.9",
+    "Flask==3.1.3",
+    "Flask-Login==0.6.3",
+    "Flask-Mail==0.10.0",
+    "Flask-Migrate==4.1.0",
+    "Flask-SQLAlchemy==3.1.1",
+    "greenlet==3.5.5",
+    "itsdangerous==2.2.0",
+    "Jinja2==3.1.6",
+    "Mako1.4.1",
+    "MarkupSafe3.0.3", 
+    "numpy2.5.3", 
+    "pandas3.0.5", 
+    "pillow12.3.0", 
+    "psycopg22.9.13", 
+    "python-dateutil2.9.0.post0", 
+    "python-dotenv1.2.3", 
+    "six1.17.0", 
+    "SQLAlchemy2.0.52", 
+    "typing_extensions4.16.0", 
+    "tzdata2026.4", 
+    "Werkzeug==3.1.8"
 ]
 
 [tool.vercel]
