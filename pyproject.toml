@@ -8,7 +8,8 @@ dependencies = [
     "Flask-Migrate",
     "Flask-Mail",
     "python-dotenv",
-    "psycopg"
+    "psycopg",
+    "Flask-Login"
 ]
 
 [tool.vercel]
