@@ -1,0 +1,178 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Academic Report Card Generator{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* CSS Styling Rules for Native A4 Portrait Printing Alignment Layouts */
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+        #printableReportArea, #printableReportArea * {
+            visibility: visible;
+        }
+        #printableReportArea {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .no-print {
+            display: none !important;
+        }
+    }
+
+    .report-card-container {
+        border: 2px solid #1e293b;
+        border-radius: 12px;
+        background: #ffffff;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    
+    .report-header-banner {
+        border-bottom: 2px dashed #cbd5e1;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid p-0">
+    
+    <!-- Title Page Header -->
+    <div class="mb-4 no-print">
+        <span class="text-muted small fw-semibold text-uppercase tracking-wider">Institution Documents</span>
+        <h2 class="fw-bold mb-0 text-dark">Report Card Print Console</h2>
+    </div>
+
+    <!-- Student Selection Navigation Panel Control Sheet -->
+    <div class="card border-0 shadow-sm p-4 rounded-4 bg-white mb-4 no-print" style="border: 1px solid #e2e8f0 !important;">
+        <div class="row align-items-end g-3">
+            <div class="col-md-6">
+                <label class="form-label small fw-bold text-secondary">Select Classroom Student Profile</label>
+                <select id="studentSelector" class="form-select rounded-3 py-2.5">
+                    <option value="" disabled selected>Choose student from list directory...</option>
+                    {% for s in students %}
+                        <option value="{{ s.admission_no }}">Roll #{{ s.roll_no }} - {{ s.name }} ({{ s.admission_no }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <button id="btnPrint" class="btn btn-dark rounded-3 py-2.5 px-4 fw-bold shadow-sm" disabled>
+                    <i class="bi bi-printer-fill"></i> Execute Print / Save as PDF
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty Dynamic Preview Placeholder Alert Layout -->
+    <div id="previewPlaceholder" class="text-center py-5 text-muted bg-white border rounded-4 shadow-sm no-print" style="border-style: dashed !important;">
+        <i class="bi bi-file-earmark-pdf fs-1 d-block mb-2 text-black-50" style="opacity: 0.3;"></i>
+        Please select an active student entry row above to generate a transcript document layout preview framework.
+    </div>
+
+    <!-- The Report Card Target Printing Container Shell -->
+    <div id="printableReportArea" class="report-card-container p-5 d-none mx-auto" style="max-width: 800px;">
+        <!-- Header Banner Section Layout -->
+        <div class="report-header-banner pb-4 mb-4 text-center">
+            <h3 class="fw-bold text-dark tracking-wide text-uppercase mb-1">Public School Management Academy</h3>
+            <span class="text-muted small fw-semibold tracking-widest d-block mb-3">OFFICIAL ACADEMIC TRANSCRIPT RECORD RECORD</span>
+            
+            <div class="row g-2 text-start bg-light p-3 rounded-3 mt-2 border border-light">
+                <div class="col-6 col-sm-3 small mb-1"><strong>Student Name:</strong> <span id="lblStudentName">-</span></div>
+                <div class="col-6 col-sm-3 small mb-1"><strong>Admission No:</strong> <span id="lblAdmissionNo">-</span></div>
+                <div class="col-6 col-sm-3 small mb-1"><strong>Class/Section:</strong> Class <span id="lblClassName">-</span></div>
+                <div class="col-6 col-sm-3 small mb-1"><strong>Roll Number:</strong> #<span id="lblRollNo">-</span></div>
+                <div class="col-12 mt-1 border-top pt-2 text-muted text-end font-monospace fs-8">Academic Batch Cycle: <span id="lblAcademicYear">-</span></div>
+            </div>
+        </div>
+
+        <!-- Central Transcript Roster Performance Data Grid Matrix Table Layout -->
+        <h6 class="fw-bold text-dark text-uppercase mb-3 tracking-wider"><i class="bi bi-bookmark-star-fill text-warning"></i> Subject Assessment Log</h6>
+        <div class="table-responsive mb-4">
+            <table class="table table-bordered align-middle text-center" id="reportCardTable">
+                <thead class="table-dark small text-uppercase">
+                    <tr>
+                        <th class="text-start ps-3">Academic Subject Title</th>
+                        <th>Examination Cycle</th>
+                        <th style="width: 25%;">Marks Secured</th>
+                    </tr>
+                </thead>
+                <tbody id="reportCardBody">
+                    <!-- Loaded dynamically via JavaScript on selection change -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer Sign-off Endorsement Block Layout -->
+        <div class="row mt-5 pt-5 text-center">
+            <div class="col-4">
+                <div class="mx-auto border-top border-dark border-1 pt-2 small text-uppercase font-weight-bold" style="max-width: 150px; margin-top: 40px;">Class Teacher</div>
+            </div>
+            <div class="col-4">
+                <div class="mx-auto border-top border-dark border-1 pt-2 small text-uppercase font-weight-bold" style="max-width: 150px; margin-top: 40px;">Exam Controller</div>
+            </div>
+            <div class="col-4">
+                <div class="mx-auto border-top border-dark border-1 pt-2 small text-uppercase font-weight-bold" style="max-width: 150px; margin-top: 40px;">Principal Admin</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Asynchronously fetch performance charts and build layout on selector row updates
+    document.getElementById('studentSelector').addEventListener('change', function() {
+        const admNo = this.value;
+        if (!admNo) return;
+
+        fetch(`/dashboard/class-teacher/student-report-data/${admNo}`)
+            .then(res => res.json())
+            .then(data => {
+                // Remove empty placeholders and display target print board frame shells
+                document.getElementById('previewPlaceholder').classList.add('d-none');
+                document.getElementById('printableReportArea').classList.remove('d-none');
+                document.getElementById('btnPrint').removeAttribute('disabled');
+
+                // Bind text configurations metadata cleanly to preview labels
+                document.getElementById('lblStudentName').textContent = data.student.name;
+                document.getElementById('lblAdmissionNo').textContent = data.student.admission_no;
+                document.getElementById('lblClassName').textContent = data.student.class_name;
+                document.getElementById('lblRollNo').textContent = data.student.roll_no;
+                document.getElementById('lblAcademicYear').textContent = data.student.academic_year;
+
+                // Empty out old data rows before writing the new marks lines
+                const tbody = document.getElementById('reportCardBody');
+                tbody.innerHTML = '';
+
+                if (data.records.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" class="py-4 text-muted">No parsed examination test matrix reports mapped to this student profile yet.</td></tr>`;
+                    return;
+                }
+
+                // Append new row rows matching individual marks data keys
+                data.records.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="text-start ps-3 fw-semibold text-dark">${row.subject}</td>
+                        <td><span class="badge bg-secondary px-2.5 py-1 rounded-pill small">${row.exam}</span></td>
+                        <td class="fw-bold text-primary fs-6">${row.score.toFixed(1)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(err => alert("Data Engine Error: Failed to gather structural transcript rows records context matching that selection."));
+    });
+
+    // Handle triggering native window printer interface
+    document.getElementById('btnPrint').addEventListener('click', function() {
+        window.print();
+    });
+</script>
+{% endblock %}

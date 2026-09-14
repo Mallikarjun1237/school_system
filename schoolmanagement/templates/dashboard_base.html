@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() if csrf_token else '' }}">
+    <title>{% block title %}Dashboard{% endblock %} - School Management System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --gradient-primary: linear-gradient(135deg, #0d6efd, #0dcaf0);
+            --bg-workspace: #f4f7fe;
+            --text-dark: #1e293b;
+        }
+
+        body {
+            background-color: var(--bg-workspace);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(13, 110, 253, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(13, 202, 240, 0.08) 0px, transparent 50%);
+            background-attachment: fixed;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            color: var(--text-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: #0f172a;
+            color: #ffffff;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            box-shadow: 4px 0 25px rgba(15, 23, 42, 0.15);
+            display: flex;
+            flex-direction: column;
+        }
+        .mobile-sidebar-drawer {
+            background: #0f172a !important;
+            color: #ffffff !important;
+            width: var(--sidebar-width) !important;
+        }
+        .sidebar-profile {
+            padding: 2rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%);
+        }
+
+        .profile-avatar-wrapper {
+            width: 60px;
+            height: 60px;
+            background: var(--gradient-primary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 8px 20px rgba(13, 110, 253, 0.3);
+        }
+        .sidebar-nav {
+            padding: 1.5rem 1rem;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .nav-custom-link {
+            color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.85rem 1.2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            margin-bottom: 0.5rem;
+        }
+
+        .nav-custom-link:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(4px);
+        }
+
+        .nav-custom-link.active {
+            background: var(--gradient-primary);
+            color: #ffffff;
+            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.25);
+        }
+
+        .sidebar-footer {
+            padding: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .main-workspace {
+            margin-left: var(--sidebar-width);
+            padding: 2.5rem;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+        .workspace-topbar {
+            background: transparent;
+            margin-bottom: 2.5rem;
+        }
+        .mobile-navbar {
+            background: #0f172a;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            z-index: 1010;
+        }
+        .custom-alert {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        @media (max-width: 992px) {
+            .main-workspace {
+                margin-left: 0;
+                padding: 5.5rem 1.5rem 1.5rem 1.5rem;
+            }
+        }
+        
+        [aria-expanded="true"] .transition-transform {
+            transform: rotate(180deg);
+        }
+        .transition-transform {
+            transition: transform 0.2s ease;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!--TOP BAR NAVIGATION INTERFACE FOR MOBILE ONLY -->
+    <nav class="navbar navbar-dark fixed-top d-lg-none mobile-navbar py-3 px-3">
+        <div class="container-fluid p-0">
+            <button class="navbar-toggler border-0 p-1" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileSidebarMenu" aria-controls="mobileSidebarMenu">
+                <i class="bi bi-list fs-2 text-white"></i>
+            </button>
+            <span class="navbar-brand mb-0 h1 fs-5 fw-bold tracking-wide text-white">Workspace Portal</span>
+            <div class="profile-avatar-wrapper shadow-none" style="width: 35px; height: 35px; border-radius: 8px; font-size: 1rem;">
+                {{ current_user.name[0] | upper if current_user.name else 'S' }}
+            </div>
+        </div>
+    </nav>
+
+    <!-- 👤 DESKTOP PERMANENT FIXED SIDEBAR SHELL -->
+    <aside class="sidebar d-none d-lg-flex">
+        <!-- Profile Component Info -->
+        <div class="sidebar-profile d-flex align-items-center gap-3">
+            <div class="profile-avatar-wrapper">
+                {{ current_user.name[0] | upper if current_user.name else 'S' }}
+            </div>
+            <div class="overflow-hidden">
+                <h6 class="mb-0 text-white text-truncate fw-bold">{{ current_user.name }}</h6>
+                <small class="text-light d-block text-truncate mb-1">ID: {{ current_user.staff_id }}</small>
+                <span class="badge rounded-pill bg-info bg-opacity-10 text-info px-2 py-1" style="font-size: 0.75rem;">
+                    {{ current_user.role }}
+                </span>
+            </div>
+        </div>
+        
+        <!-- Navigation Links Mapping Container -->
+        <nav class="sidebar-nav">
+            {% if current_user.role == "TEACHER" %}
+                <div class="p-3 mx-2 mb-3 rounded-3 shadow-sm bg-white text-center border border-light">
+                    {% if current_user.profile_pic %}
+                        <img src="{{ url_for('get_user_avatar', staff_id=current_user.staff_id) }}" class="rounded-circle border mb-2" style="width: 50px; height: 50px; object-fit: cover;">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='images/newleaf.jpg') }}" class="rounded-circle border mb-2" style="width: 50px; height: 50px; object-fit: cover;">
+                    {% endif %}
+                    <h6 class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">{{ current_user.name }}</h6>
+                    <span class="text-muted small d-block mb-1">Staff ID: {{ current_user.staff_id }}</span>
+                    
+                    {% if session.get('is_class_teacher') %}
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle rounded-pill px-2.5">
+                            Class Teacher: {{ session.get('managed_class_name') }}
+                        </span>
+                    {% else %}
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-2.5">Standard Faculty</span>
+                    {% endif %}
+                </div>
+
+                <a href="{{ url_for('teacher_overview', staff_id=current_user.staff_id) }}" class="nav-custom-link">
+                    <i class="bi bi-grid-1x2-fill"></i> Profile Overview
+                </a>
+                
+                {% if session.get('is_class_teacher') %}
+                    <a href="{{ url_for('classteacher_dashboard', staff_id=current_user.staff_id) }}" class="nav-custom-link">
+                        <i class="bi bi-house-door"></i> Dashboard
+                    </a>
+                {% endif %}
+
+                <a href="{{ url_for('teacher_dashboard', staff_id=current_user.staff_id) }}" class="nav-custom-link">
+                    <i class="bi bi-journal-bookmark-fill"></i> Gradebook (Marks Entry)
+                </a>
+                
+                <a class="nav-custom-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#myClassesCollapse" role="button" aria-expanded="false" aria-controls="myClassesCollapse">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-people-fill"></i>
+                        <span>My Classes</span>
+                    </div>
+                    <i class="bi bi-chevron-down small transition-transform"></i>
+                </a>
+                
+                <div class="collapse" id="myClassesCollapse" style="padding-left: 1.5rem;">
+                    {% if assignments %}
+                        {% set displayed_classes = [] %}
+                        {% for assign in assignments %}
+                            {% if assign.class_name not in displayed_classes %}
+                                {% set _ = displayed_classes.append(assign.class_name) %}
+                                <a href="{{ url_for('view_class_roster', class_name=assign.class_name) }}" class="nav-custom-link py-1.5 fs-7 opacity-85 text-truncate" style="font-size: 0.9rem; margin-bottom: 0.25rem;">
+                                    <i class="bi bi-arrow-return-right text-muted" style="font-size: 0.75rem;"></i> Class {{ assign.class_name }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <small class="text-muted d-block ps-3 py-1">No classes assigned</small>
+                    {% endif %}
+                </div>
+
+                {% if session.get('is_class_teacher') %}
+                    <div class="text-uppercase tracking-wider fw-bold text-secondary text-opacity-70 small px-3 mt-4 mb-2" style="font-size: 0.75rem; letter-spacing: 0.05em;">Class Master Toolkit</div>
+                    <a href="{{ url_for('class_teacher_roster') }}" class="nav-custom-link">
+                        <i class="bi bi-grid-3x3-gap-fill text-primary"></i> Master Roster View
+                    </a>
+                    <a href="{{ url_for('class_teacher_bulk_students') }}" class="nav-custom-link">
+                        <i class="bi bi-file-earmark-spreadsheet-fill text-success"></i> Bulk Student Entry
+                    </a>
+                    <a href="{{ url_for('class_teacher_report_card') }}" class="nav-custom-link">
+                        <i class="bi bi-printer-fill text-danger"></i> Report Card Generator
+                    </a>
+                {% endif %}
+
+            {% elif current_user.role == "PRINCIPAL" %}
+                <div class="p-3 mx-2 mb-3 rounded-3 shadow-sm bg-white text-center border border-light">
+                    {% if current_user.profile_pic and current_user.profile_pic != 'newleaf.jpg' %}
+                        <img src="{{ url_for('get_user_avatar', staff_id=current_user.staff_id) }}" class="rounded-circle border mb-2" style="width: 50px; height: 50px; object-fit: cover;">
+                    {% else %}
+                        <img src="{{ url_for('static', filename='images/newleaf.jpg') }}" class="rounded-circle border mb-2" style="width: 50px; height: 50px; object-fit: cover;">
+                    {% endif %}
+                    <h6 class="fw-bold text-dark mb-0" style="font-size: 0.95rem;">{{ current_user.name }}</h6>
+                    <span class="text-muted small d-block mb-1">Administrator Profile</span>
+                    <span class="badge bg-dark bg-opacity-70 text-white rounded-pill px-2.5 small fw-bold">School Principal</span>
+                </div>
+
+                <a href="{{ url_for('principal_overview', staff_id=current_user.staff_id) }}" class="nav-custom-link">
+                    <i class="bi bi-person-badge-fill"></i> Profile Overview
+                </a>
+                <a href="{{ url_for('principal_dashboard', staff_id=current_user.staff_id) }}" class="nav-custom-link">
+                    <i class="bi bi-house-door"></i> Dashboard
+                </a>
+                <a href="{{ url_for('principal_analytics') }}" class="nav-custom-link">
+                    <i class="bi bi-speedometer2"></i> School Analytics
+                </a>
+
+                <a class="nav-custom-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#principalControlCollapse" role="button" aria-expanded="false" aria-controls="principalControlCollapse">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="bi bi-sliders"></i>
+                        <span>School Control</span>
+                    </div>
+                    <i class="bi bi-chevron-down small transition-transform"></i>
+                </a>
+
+                <div class="collapse" id="principalControlCollapse" style="padding-left: 1.5rem;">
+                    <a href="{{ url_for('principal_allocations') }}" class="nav-custom-link py-1.5 fs-7 opacity-85 text-truncate" style="font-size: 0.9rem;">
+                        <i class="bi bi-arrow-return-right text-muted" style="font-size: 0.75rem;"></i> Assign Management
+                    </a>
+                    <a href="{{ url_for('principal_academic_setup') }}" class="nav-custom-link py-1.5 fs-7 opacity-85 text-truncate" style="font-size: 0.9rem;">
+                        <i class="bi bi-arrow-return-right text-muted" style="font-size: 0.75rem;"></i> Setup Academic Fields
+                    </a>
+                    <a href="{{ url_for('principal_teacher_monitoring') }}" class="nav-custom-link py-1.5 fs-7 opacity-85 text-truncate" style="font-size: 0.9rem;">
+                        <i class="bi bi-arrow-return-right text-muted" style="font-size: 0.75rem;"></i> Teacher Monitoring
+                    </a>
+                </div>
+            {% endif %}
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2 border-0 rounded-3 py-2 text-start" style="background: rgba(220, 53, 69, 0.1);">
+                <i class="bi bi-box-arrow-left"></i> <span>Log Out</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- SLIDE-OUT MOBILE NAV DRAWER CONTAINER (OFFCANVAS CLONE) -->
+    <div class="offcanvas offcanvas-start mobile-sidebar-drawer d-lg-none" tabindex="-1" id="mobileSidebarMenu" aria-labelledby="mobileSidebarMenuLabel">
+        <div class="offcanvas-header border-bottom border-light border-opacity-10 py-3">
+            <h5 class="offcanvas-title text-white fw-bold d-flex align-items-center gap-2" id="mobileSidebarMenuLabel">
+                <i class="bi bi-shield-lock-fill text-info"></i> Navigation Menu
+            </h5>
+            <button type="button" class="btn-close btn-close-white text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        
+        <div class="offcanvas-body p-0 d-flex flex-column h-100">
+            <!-- Profile Info Module Duplicate -->
+            <div class="sidebar-profile d-flex align-items-center gap-3 bg-black bg-opacity-20">
+                <div class="profile-avatar-wrapper shadow-none" style="width: 50px; height: 50px; font-size: 1.4rem;">
+                    {{ current_user.name[0] | upper if current_user.name else 'S' }}
+                </div>
+                <div class="overflow-hidden">
+                    <h6 class="mb-0 text-white text-truncate fw-bold" style="font-size: 0.95rem;">{{ current_user.name }}</h6>
+                    <small class="text-muted d-block text-truncate small mb-0.5">ID: {{ current_user.staff_id }}</small>
+                    <span class="badge rounded-pill bg-info bg-opacity-10 text-info px-2 py-0.5" style="font-size: 0.7rem;">
+                        {{ current_user.role }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Core Roster Route Lists Duplicate -->
+            <nav class="sidebar-nav px-3">
+                {% if current_user.role == "TEACHER" %}
+                    <div class="p-3 mx-1 mb-3 rounded-3 bg-white text-center border border-light shadow-sm">
+                        {% if current_user.profile_pic %}
+                            <img src="{{ url_for('get_user_avatar', staff_id=current_user.staff_id) }}" class="rounded-circle border mb-2" style="width: 45px; height: 45px; object-fit: cover;">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='images/newleaf.jpg') }}" class="rounded-circle border mb-2" style="width: 45px; height: 45px; object-fit: cover;">
+                        {% endif %}
+                        <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">{{ current_user.name }}</h6>
+                        {% if session.get('is_class_teacher') %}
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle rounded-pill px-2 py-0.5 small mt-1" style="font-size: 0.75rem;">
+                                Class: {{ session.get('managed_class_name') }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <a href="{{ url_for('teacher_overview', staff_id=current_user.staff_id) }}" class="nav-custom-link">
+                        <i class="bi bi-grid-1x2-fill"></i> Profile Overview
+                    </a>
+                    
+                    {% if session.get('is_class_teacher') %}
+                        <a href="{{ url_for('classteacher_dashboard', staff_id=current_user.staff_id) }}" class="nav-custom-link">
+                            <i class="bi bi-house-door"></i> Dashboard
+                        </a>
+                    {% endif %}
+
+                    <a href="{{ url_for('teacher_dashboard', staff_id=current_user.staff_id) }}" class="nav-custom-link">
+                        <i class="bi bi-journal-bookmark-fill"></i> Gradebook (Marks Entry)
+                    </a>
+                    
+                    <a class="nav-custom-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#mobileClassesCollapse" role="button" aria-expanded="false" aria-controls="mobileClassesCollapse">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="bi bi-people-fill"></i>
+                            <span>My Classes</span>
+                        </div>
+                        <i class="bi bi-chevron-down small transition-transform"></i>
+                    </a>
+                    
+                    <div class="collapse" id="mobileClassesCollapse" style="padding-left: 1.5rem;">
+                        {% if assignments %}
+                            {% set displayed_classes = [] %}
+                            {% for assign in assignments %}
+                                {% if assign.class_name not in displayed_classes %}
+                                    {% set _ = displayed_classes.append(assign.class_name) %}
+                                    <a href="{{ url_for('view_class_roster', class_name=assign.class_name) }}" class="nav-custom-link py-1.5 opacity-85 text-truncate" style="font-size: 0.85rem;">
+                                        <i class="bi bi-arrow-return-right text-muted" style="font-size: 0.7rem;"></i> Class {{ assign.class_name }}
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <small class="text-muted d-block ps-3 py-1">No classes assigned</small>
+                        {% endif %}
+                    </div>
+
+                    {% if session.get('is_class_teacher') %}
+                        <div class="text-uppercase tracking-wider fw-bold text-secondary text-opacity-70 small px-3 mt-4 mb-2" style="font-size: 0.7rem; letter-spacing: 0.05em;">Class Master Toolkit</div>
+                        <a href="{{ url_for('class_teacher_roster') }}" class="nav-custom-link">
+                            <i class="bi bi-grid-3x3-gap-fill text-primary"></i> Master Roster View
+                        </a>
+                        <a href="{{ url_for('class_teacher_bulk_students') }}" class="nav-custom-link">
+                            <i class="bi bi-file-earmark-spreadsheet-fill text-success"></i> Bulk Student Entry
+                        </a>
+                        <a href="{{ url_for('class_teacher_report_card') }}" class="nav-custom-link">
+                            <i class="bi bi-printer-fill text-danger"></i> Report Card Generator
+                        </a>
+                    {% endif %}
+
+                {% elif current_user.role == "PRINCIPAL" %}
+                    <div class="p-3 mx-1 mb-3 rounded-3 bg-white text-center border border-light shadow-sm">
+                        {% if current_user.profile_pic and current_user.profile_pic != 'newleaf.jpg' %}
+                            <img src="{{ url_for('get_user_avatar', staff_id=current_user.staff_id) }}" class="rounded-circle border mb-2" style="width: 45px; height: 45px; object-fit: cover;">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='images/newleaf.jpg') }}" class="rounded-circle border mb-2" style="width: 45px; height: 45px; object-fit: cover;">
+                        {% endif %}
+                        <h6 class="fw-bold text-dark mb-0" style="font-size: 0.9rem;">{{ current_user.name }}</h6>
+                        <span class="badge bg-dark bg-opacity-70 text-white rounded-pill px-2.5 py-0.5 small mt-1" style="font-size: 0.75rem;">School Principal</span>
+                    </div>
+
+                    <a href="{{ url_for('principal_overview', staff_id=current_user.staff_id) }}" class="nav-custom-link">
+                        <i class="bi bi-person-badge-fill"></i> Profile Overview
+                    </a>
+                    <a href="{{ url_for('principal_dashboard', staff_id=current_user.staff_id) }}" class="nav-custom-link">
+                        <i class="bi bi-house-door"></i> Dashboard
+                    </a>
+                    <a href="{{ url_for('principal_analytics') }}" class="nav-custom-link">
+                        <i class="bi bi-speedometer2"></i> School Analytics
+                    </a>
+
+                    <a class="nav-custom-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#mobilePrincipalCollapse" role="button" aria-expanded="false" aria-controls="mobilePrincipalCollapse">
+                        <div class="d-flex align-items-center gap-3">
+                            <i class="bi bi-sliders"></i>
+                            <span>School Control</span>
+                        </div>
+                        <i class="bi bi-chevron-down small transition-transform"></i>
+                    </a>
+
+                    <div class="collapse" id="mobilePrincipalCollapse" style="padding-left: 1.5rem;">
+                        <a href="{{ url_for('principal_allocations') }}" class="nav-custom-link py-1.5 text-truncate" style="font-size: 0.85rem;">
+                            <i class="bi bi-arrow-return-right text-muted" style="font-size: 0.7rem;"></i> Assign Management
+                        </a>
+                        <a href="{{ url_for('principal_academic_setup') }}" class="nav-custom-link py-1.5 text-truncate" style="font-size: 0.85rem;">
+                            <i class="bi bi-arrow-return-right text-muted" style="font-size: 0.7rem;"></i> Setup Academic Fields
+                        </a>
+                        <a href="{{ url_for('principal_teacher_monitoring') }}" class="nav-custom-link py-1.5 text-truncate" style="font-size: 0.85rem;">
+                            <i class="bi bi-arrow-return-right text-muted" style="font-size: 0.7rem;"></i> Teacher Monitoring
+                        </a>
+                    </div>
+                {% endif %}
+            </nav>
+
+            <!-- Mandatory Log Out Action Sync -->
+            <div class="p-3 mt-auto border-top border-light border-opacity-10 bg-black bg-opacity-10">
+                <a href="{{ url_for('logout') }}" class="btn btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2 rounded-3 py-2 text-start" style="background: rgba(220, 53, 69, 0.08);">
+                    <i class="bi bi-box-arrow-left"></i> <span class="fw-semibold">Log Out</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dynamic Content Panel Area -->
+    <main class="main-workspace">
+        <header class="workspace-topbar d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <span class="text-muted small fw-semibold text-uppercase tracking-wider">Welcome Back</span>
+                <h2 class="fw-bold mb-0 text-dark">Portal Workspace</h2>
+            </div>
+            <div class="d-flex align-items-center gap-2 bg-white px-3 py-2 rounded-3 shadow-sm border border-light">
+                <i class="bi bi-calendar3 text-primary"></i>
+                <span class="fw-medium text-secondary" id="live-date">July 2026</span>
+            </div>
+        </header>
+
+        <div class="flash-container mb-4">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' or category == 'danger' else 'success' }} alert-dismissible fade show custom-alert" role="alert">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi {{ 'bi-exclamation-triangle-fill' if category == 'danger' else 'bi-check-circle-fill' }}"></i>
+                                <span>{{ message }}</span>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        {% block dashboard_content %}{% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('live-date').textContent = new Date().toLocaleDateString('en-US', { 
+            weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' 
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

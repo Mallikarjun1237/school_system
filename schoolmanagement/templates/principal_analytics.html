@@ -1,0 +1,129 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}School Analytics Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid p-0">
+    
+    <!-- Title Page Headers -->
+    <div class="mb-4">
+        <span class="text-muted small fw-semibold text-uppercase tracking-wider">Administration Panel</span>
+        <h2 class="fw-bold mb-0 text-dark">School Analytics Command Hub</h2>
+    </div>
+
+    <!-- Tier 1 Metrics Row Cards Overview Layout -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 rounded-4 bg-white" style="border: 1px solid #e2e8f0 !important;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-3 bg-primary bg-opacity-10 text-primary p-3 fs-3"><i class="bi bi-people-fill"></i></div>
+                    <div>
+                        <h6 class="text-muted small fw-bold text-uppercase mb-1">Total Enrollment</h6>
+                        <h3 class="fw-bold text-dark mb-0">{{ total_students }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 rounded-4 bg-white" style="border: 1px solid #e2e8f0 !important;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-3 bg-success bg-opacity-10 text-success p-3 fs-3"><i class="bi bi-person-video3"></i></div>
+                    <div>
+                        <h6 class="text-muted small fw-bold text-uppercase mb-1">Active Faculty</h6>
+                        <h3 class="fw-bold text-dark mb-0">{{ total_teachers }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-3 rounded-4 bg-white" style="border: 1px solid #e2e8f0 !important;">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-3 bg-info bg-opacity-10 text-info p-3 fs-3"><i class="bi bi-building"></i></div>
+                    <div>
+                        <h6 class="text-muted small fw-bold text-uppercase mb-1">Active Classes</h6>
+                        <h3 class="fw-bold text-dark mb-0">{{ total_classes }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tier 2 Chart Graphs Canvas Containers Section Layout -->
+    <div class="row g-4">
+        <!-- Chart 1 Layout Grid Column -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white" style="border: 1px solid #e2e8f0 !important;">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-bar-chart-steps text-primary"></i> Student Distribution Matrix</h5>
+                <div style="position: relative; height:300px;">
+                    <canvas id="enrollmentChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- Chart 2 Layout Grid Column -->
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white" style="border: 1px solid #e2e8f0 !important;">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-graph-up-arrow text-success"></i> Class Academic Grade Averages</h5>
+                <div style="position: relative; height:300px;">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Inject Chart.js Core Library Platform Engine Files -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // 1. Initialize Enrollment Density Bar Chart Canvas Graph
+    const ctxEnrollment = document.getElementById('enrollmentChart').getContext('2d');
+    new Chart(ctxEnrollment, {
+        type: 'bar',
+        data: {
+            // Enclosing in quotes makes your editor treat it like a string, removing the red underlines
+            labels: JSON.parse('{{ class_labels | tojson | safe }}'),
+            datasets: [{
+                label: 'Enrolled Students',
+                data: JSON.parse('{{ class_counts | tojson | safe }}'),
+                backgroundColor: 'rgba(13, 110, 253, 0.75)',
+                borderColor: '#0d6efd',
+                borderWidth: 1.5,
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+        }
+    });
+
+    // 2. Initialize Academic Growth Performance Trend Line Graph
+    const ctxPerformance = document.getElementById('performanceChart').getContext('2d');
+    new Chart(ctxPerformance, {
+        type: 'line',
+        data: {
+            labels: JSON.parse('{{ perf_labels | tojson | safe }}'),
+            datasets: [{
+                label: 'Average Score (%)',
+                data: JSON.parse('{{ perf_averages | tojson | safe }}'),
+                borderColor: '#198754',
+                backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                borderWidth: 3,
+                tension: 0.3,
+                fill: true,
+                pointBackgroundColor: '#198754'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { min: 0, max: 100 } }
+        }
+    });
+</script>
+{% endblock %}

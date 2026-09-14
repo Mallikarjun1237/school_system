@@ -1,0 +1,102 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Bulk Class Registration Console{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid p-0">
+    
+    <!-- Section Title Card Header -->
+    <div class="mb-4">
+        <span class="text-muted small fw-semibold text-uppercase tracking-wider">Class Master Toolkit</span>
+        <h2 class="fw-bold mb-0 text-dark">Bulk Student Enrollment: Class {{ class_name }}</h2>
+    </div>
+
+    <!-- Spreadsheet Entry Board Wrapper -->
+    <form action="" method="POST" id="bulkForm">
+        <div class="card border-0 shadow-sm p-4 rounded-4 bg-white mb-4" style="border: 1px solid #e2e8f0 !important;">
+            <p class="text-muted small mb-3"><i class="bi bi-info-circle text-primary"></i> Fill out the grid layout rows to batch enroll profiles directly into your homeroom. Blank rows are skipped automatically.</p>
+            
+            <div class="table-responsive">
+                <table class="table table-bordered align-middle mb-0" id="bulkSpreadsheetTable">
+                    <thead class="table-light text-secondary small fw-bold text-uppercase text-center">
+                        <tr>
+                            <th style="width: 15%;">Admission No <span class="text-danger">*</span></th>
+                            <th style="width: 10%;">Roll No</th>
+                            <th style="width: 40%;">Student Full Name <span class="text-danger">*</span></th>
+                            <th style="width: 20%;">Date of Birth</th>
+                            <th style="width: 15%;">Academic Year</th>
+                        </tr>
+                    </thead>
+                    <tbody id="spreadsheetBody">
+                        <!-- Initializing with 3 clean tracking columns default entry rows -->
+                        {% for row in range(3) %}
+                        <tr>
+                            <td><input type="text" name="admission_no[]" class="form-control text-uppercase font-monospace text-center rounded-2 small" placeholder="e.g., STU101"></td>
+                            <td><input type="number" name="roll_no[]" class="form-control text-center rounded-2 small" placeholder="e.g., 1"></td>
+                            <td><input type="text" name="name[]" class="form-control rounded-2 small" placeholder="Enter student's legal name"></td>
+                            <td><input type="date" name="dob[]" class="form-control rounded-2 small"></td>
+                            <td><input type="text" name="academic_year[]" class="form-control text-center rounded-2 small" value="2026"></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Dynamic Control Setup Action Bars -->
+            <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-2">
+                <button type="button" class="btn btn-outline-dark btn-sm rounded-3 fw-bold" id="btnAppendRow">
+                    <i class="bi bi-plus-circle"></i> Append Data Row
+                </button>
+                <button type="submit" class="btn btn-success rounded-3 px-4 fw-bold">
+                    <i class="bi bi-cloud-upload"></i> Commit Batch Registration
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Client-side execution loop to automatically scale sheet layouts by appending new matrix elements
+    document.getElementById('btnAppendRow').addEventListener('click', function() {
+        const tbody = document.getElementById('spreadsheetBody');
+        const newRow = document.createElement('tr');
+        
+        newRow.innerHTML = `
+            <td><input type="text" name="admission_no[]" class="form-control text-uppercase font-monospace text-center rounded-2 small" placeholder="e.g., STU101"></td>
+            <td><input type="number" name="roll_no[]" class="form-control text-center rounded-2 small" placeholder="e.g., 1"></td>
+            <td><input type="text" name="name[]" class="form-control rounded-2 small" placeholder="Enter student's legal name"></td>
+            <td><input type="date" name="dob[]" class="form-control rounded-2 small"></td>
+            <td><input type="text" name="academic_year[]" class="form-control text-center rounded-2 small" value="2026"></td>
+        `;
+        
+        tbody.appendChild(newRow);
+    });
+
+    // Simple front-end validation mapping helper logic
+    document.getElementById('bulkForm').addEventListener('submit', function(e) {
+        const admInputs = document.querySelectorAll('input[name="admission_no[]"]');
+        const nameInputs = document.querySelectorAll('input[name="name[]"]');
+        let hasData = false;
+        
+        for (let i = 0; i < admInputs.length; i++) {
+            const adm = admInputs[i].value.trim();
+            const name = nameInputs[i].value.trim();
+            
+            // Check structural mismatch rules
+            if ((adm && !name) || (!adm && name)) {
+                e.preventDefault();
+                alert(" Incomplete row entry grid. Every entered Admission Number requires a corresponding Student Name.");
+                return;
+            }
+            if(adm && name) hasData = true;
+        }
+
+        if(!hasData) {
+            e.preventDefault();
+            alert("Empty Forms: Please complete at least one single record block sequence profile layout line before hitting upload.");
+        }
+    });
+</script>
+{% endblock %}

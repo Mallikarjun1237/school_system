@@ -1,0 +1,85 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Class Teacher Console Portal{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid p-0">
+    
+    <!-- Welcoming Header Banner Panel -->
+    <div class="p-4 p-md-5 mb-4 rounded-4 text-white shadow-sm position-relative overflow-hidden" 
+         style="background: linear-gradient(135deg, #0f172a, #1e293b);">
+        <div class="col-md-8 position-relative" style="z-index: 2;">
+            <span class="badge bg-success px-3 py-1.5 rounded-pill mb-3 text-uppercase tracking-wider fw-bold">Academic Custodian Console</span>
+            <h1 class="display-5 fw-bold text-white mb-2">Welcome back, {{ current_user.name }}</h1>
+            <p class="lead text-white-50 mb-0">You are the official assigned Class Master for **Class {{ class_name }}**. From this command panel, you can view student performance trends, perform bulk spreadsheets actions, and generate printable student grade cards.</p>
+        </div>
+        <i class="bi bi-mortarboard-fill text-white position-absolute" style="font-size: 14rem; right: 20px; bottom: -40px; opacity: 0.05; z-index: 1;"></i>
+    </div>
+
+    <!-- Telemetry Information Cards Bar -->
+    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-speedometer2 text-primary"></i> Classroom Operations Overview</h5>
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm p-3 rounded-4 bg-white text-center" style="border: 1px solid #e2e8f0 !important;">
+                <span class="text-muted small fw-bold text-uppercase d-block mb-1">Classroom Roster</span>
+                <h3 class="fw-bold mb-0 text-dark">{{ student_count }} Students</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm p-3 rounded-4 bg-white text-center" style="border: 1px solid #e2e8f0 !important;">
+                <span class="text-muted small fw-bold text-uppercase d-block mb-1">Tracked Coursework</span>
+                <h3 class="fw-bold mb-0 text-success">{{ subject_count }} Active Subjects</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm p-3 rounded-4 bg-white text-center" style="border: 1px solid #e2e8f0 !important;">
+                <span class="text-muted small fw-bold text-uppercase d-block mb-1">Assessment Matrix</span>
+                <h3 class="fw-bold mb-0 text-info">{{ exam_count }} Exam Cycles</h3>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm p-3 rounded-4 bg-white text-center" style="border: 1px solid #e2e8f0 !important;">
+                <span class="text-muted small fw-bold text-uppercase d-block mb-1">Assigned Division</span>
+                <h3 class="fw-bold mb-0 text-warning">{{ class_name }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- Administrative Quick Links Hub Grid -->
+    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-sliders text-success"></i> Management Shortcuts Toolkit</h5>
+    <div class="row g-4">
+        
+        <!-- Shortcut 1: Master Grid Matrix -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white h-100 text-center" style="border: 1px solid #e2e8f0 !important;">
+                <div class="fs-1 text-primary mb-2"><i class="bi bi-grid-3x3-gap-fill"></i></div>
+                <h5 class="fw-bold text-dark mb-1">Master Roster View</h5>
+                <p class="text-muted small mb-3">View the complete student directory grid, analyze dynamic average statistics, and run automated class rankings.</p>
+                <a href="{{ url_for('class_teacher_roster') }}" class="btn btn-sm btn-outline-primary rounded-3 px-3 fw-bold mt-auto">Open Performance Roster</a>
+            </div>
+        </div>
+
+        <!-- Shortcut 2: Bulk Upload Layout -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white h-100 text-center" style="border: 1px solid #e2e8f0 !important;">
+                <div class="fs-1 text-success mb-2"><i class="bi bi-file-earmark-spreadsheet-fill"></i></div>
+                <h5 class="fw-bold text-dark mb-1">Bulk Student Entry</h5>
+                <p class="text-muted small mb-3">Add multiple new student records, register their dates of birth, and allocate roll numbers simultaneously via our spreadsheet layout.</p>
+                <a href="{{ url_for('class_teacher_bulk_students') }}" class="btn btn-sm btn-outline-success rounded-3 px-3 fw-bold mt-auto">Open Batch Panel</a>
+            </div>
+        </div>
+
+        <!-- Shortcut 3: Transcript PDF Generator -->
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white h-100 text-center" style="border: 1px solid #e2e8f0 !important;">
+                <div class="fs-1 text-danger mb-2"><i class="bi bi-printer-fill"></i></div>
+                <h5 class="fw-bold text-dark mb-1">Report Card Generator</h5>
+                <p class="text-muted small mb-3">Select single student profiles to review dynamic report sheets and save official A4 portrait transcripts directly to PDF.</p>
+                <a href="{{ url_for('class_teacher_report_card') }}" class="btn btn-sm btn-outline-danger rounded-3 px-3 fw-bold mt-auto">Open Print Console</a>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

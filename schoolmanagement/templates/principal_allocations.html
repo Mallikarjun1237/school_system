@@ -1,0 +1,233 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Teacher Allocation Management{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid p-0">
+    
+    <!-- Title Section Header -->
+    <div class="mb-4">
+        <span class="text-muted small fw-semibold text-uppercase tracking-wider">Staff Management</span>
+        <h2 class="fw-bold mb-0 text-dark">Assign Management Dashboard</h2>
+    </div>
+
+    <!-- UPPER ROW: Subject Workload Allocations Matrix -->
+    <div class="row g-4 mb-5">
+        
+        <!-- Left Column Pane: The Allocation Creation Form Panel -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white sticky-top" style="border: 1px solid #e2e8f0 !important; top: 20px; z-index: 10;">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-person-plus-fill text-primary"></i> Create Assignment Map</h5>
+                <p class="text-muted small mb-4">Link a qualified faculty teacher to an active class section and course subject code.</p>
+                
+                <form action="" method="POST">
+                    <!-- Dropdown A: Select Teacher -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">1. Choose Faculty Teacher</label>
+                        <select name="staff_id" class="form-select rounded-3 py-2" required>
+                            <option value="" disabled selected>Select active teacher...</option>
+                            {% for t in teachers %}
+                                <option value="{{ t.staff_id }}">{{ t.name }} ({{ t.staff_id }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Dropdown B: Select Class -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">2. Target Classroom Division</label>
+                        <select name="class_name" class="form-select rounded-3 py-2" required>
+                            <option value="" disabled selected>Select class...</option>
+                            {% for c in classes %}
+                                <option value="{{ c.class_name }}">Class {{ c.class_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Dropdown C: Select Subject -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">3. Assigned Subject Course</label>
+                        <select name="subject_id" class="form-select rounded-3 py-2" required>
+                            <option value="" disabled selected>Select course subject...</option>
+                            {% for s in subjects %}
+                                <option value="{{ s.subject_id }}">{{ s.subject_name }} ({{ s.subject_id }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Submit Execution Action Button -->
+                    <button type="submit" class="btn btn-primary w-100 rounded-3 py-2.5 fw-bold mt-2" style="background: linear-gradient(135deg, #0d6efd, #0dcaf0); border:none;">
+                        <i class="bi bi-link-45deg"></i> Deploy Allocation Map
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right Column Pane: Active Directory Log Grid Table Layout -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white h-100" style="border: 1px solid #e2e8f0 !important;">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                    <h5 class="fw-bold text-dark mb-0"><i class="bi bi-collection-play-fill text-success"></i> Active Academic Assignments</h5>
+                    <input type="text" id="tableSearch" class="form-control form-control-sm rounded-3" placeholder="Filter by teacher or class..." style="max-width: 220px;">
+                </div>
+
+                <div class="table-responsive" style="max-height: 520px; overflow-y: auto;">
+                    <table class="table table-hover align-middle mb-0" id="allocationTable">
+                        <thead class="sticky-top bg-light" style="border-bottom: 2px solid #e2e8f0; z-index: 1;">
+                            <tr>
+                                <th class="py-2.5 text-secondary small fw-bold text-uppercase ps-3">Class</th>
+                                <th class="py-2.5 text-secondary small fw-bold text-uppercase">Teacher Name</th>
+                                <th class="py-2.5 text-secondary small fw-bold text-uppercase">Subject Title</th>
+                                <th class="py-2.5 text-secondary small fw-bold text-uppercase text-end pe-3">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in allocations %}
+                                <tr>
+                                    <td class="ps-3 fw-bold text-primary">Class {{ a.class_name }}</td>
+                                    <td class="fw-semibold text-dark">{{ a.teacher_name }}</td>
+                                    <td>
+                                        <span class="fw-medium text-dark">{{ a.subject_name }}</span> 
+                                        <code class="d-block small text-muted">{{ a.subject_id }}</code>
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <form action="{{ url_for('delete_allocation', assignment_id=a.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to remove this teacher assignment mapping?');">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-3 py-1 px-2.5">
+                                                <i class="bi bi-trash3-fill" style="font-size: 0.85rem;"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-5 text-muted">
+                                        <i class="bi bi-share fs-2 d-block mb-2 text-black-50" style="opacity: 0.3;"></i>
+                                        No active staff assignment mappings exist inside the database framework yet.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- LOWER SECTION: 🌟 Faculty Class Master Designation Console Panel -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white" style="border: 1px solid #e2e8f0 !important;">
+        <div class="mb-4">
+            <h5 class="fw-bold text-dark mb-1"><i class="bi bi-shield-check text-primary"></i> Faculty Class Master Designations</h5>
+            <p class="text-muted small mb-0">Appoint or reallocate official Class Teachers to classroom branches instantly via asynchronous API pipelines.</p>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-secondary small text-uppercase">
+                    <tr>
+                        <th class="py-2.5 ps-3">Staff ID</th>
+                        <th class="py-2.5">Faculty Name</th>
+                        <th class="py-2.5">Current Active Duty Status</th>
+                        <th class="py-2.5 text-end pe-3" style="width: 260px;">Assign Managed Class</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for teacher in teachers %}
+                    <tr>
+                        <td class="ps-3 fw-bold text-secondary">#{{ teacher.staff_id }}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="p-2 bg-light rounded-circle text-primary d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                    <i class="bi bi-person-video3"></i>
+                                </span>
+                                <span class="fw-semibold text-dark">{{ teacher.name }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% if teacher.staff_id in assigned_teacher_ids %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success-subtle rounded-pill px-3 py-1.5">
+                                    <i class="bi bi-check-circle-fill me-1"></i> Active Class Custodian
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill px-3 py-1.5">
+                                    Standard Faculty Row
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-3">
+                            <select class="form-select form-select-sm assign-class-teacher-select rounded-3 border-light shadow-sm d-inline-block" 
+                                    data-staff-id="{{ teacher.staff_id }}"
+                                    style="max-width: 220px;">
+                                <option value="">-- Unassigned (None) --</option>
+                                {% for class_item in classes %}
+                                    <option value="{{ class_item.class_name }}"
+                                        {% if teacher.staff_id in assignment_mapping and assignment_mapping[teacher.staff_id] == class_item.class_name %} selected {% endif %}>
+                                        Class {{ class_item.class_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+        // Automate keeping the accordion menu block cleanly expanded for UX flow continuity
+        const pCollapse = new bootstrap.Collapse(document.getElementById('principalControlCollapse'), { toggle: false });
+        pCollapse.show();
+        
+        // Client-side quick filter search bar functionality
+        const searchInput = document.getElementById('tableSearch');
+        const tableRows = document.querySelectorAll('#allocationTable tbody tr');
+
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            
+            tableRows.forEach(row => {
+                if(row.cells.length < 2) return; // Skip placeholder row
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+
+        // 🌟 NEW: Handle dynamic Class Teacher changes instantly without page breaking
+        document.querySelectorAll('.assign-class-teacher-select').forEach(selectElement => {
+            selectElement.addEventListener('change', async (event) => {
+                const staffId = event.target.getAttribute('data-staff-id');
+                const selectedClass = event.target.value;
+
+                try {
+                    const response = await fetch('/api/admin/assign-class-teacher', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            staff_id: staffId,
+                            class_name: selectedClass
+                        })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Instant reload to force base layout navigation panels to update tracking configurations smoothly
+                        window.location.reload();
+                    } else {
+                        alert("Allocation Rejected: " + result.message);
+                    }
+                } catch (error) {
+                    console.error("Failed to post classification parameters:", error);
+                    alert("Critical network error updating class teacher assignments.");
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

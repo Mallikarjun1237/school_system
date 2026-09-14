@@ -1,0 +1,212 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Principal Profile Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .profile-card {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    }
+
+    .avatar-upload-container {
+        position: relative;
+        width: 130px;
+        height: 130px;
+        margin: 0 auto;
+    }
+
+    .avatar-preview {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #ffffff;
+        box-shadow: 0 8px 24px rgba(13, 110, 253, 0.15);
+    }
+
+    .avatar-edit-badge {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        background: linear-gradient(135deg, #0d6efd, #0dcaf0);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        cursor: pointer;
+        border: 3px solid #ffffff;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        transition: all 0.2s ease;
+    }
+
+    .avatar-edit-badge:hover {
+        transform: scale(1.1);
+    }
+
+    .info-label {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+</style>
+{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid p-0 max-width-md mx-auto" style="max-width: 900px;">
+    <div  class="row g-4">
+        <div class="col-md-4">
+            <div class="card profile-card text-center p-4">
+                <div class="card-body">
+                    <div class="avatar-upload-container mb-3">
+                        {% if current_user.profile_pic %}
+                            <img src="{{ url_for('get_user_avatar', staff_id=current_user.staff_id) }}" class="avatar-preview" id="imagePreview" alt="Profile">
+                        {% else %}
+                            <div class="avatar-preview d-flex align-items-center justify-content-center bg-dark text-white font-weight-bold fs-1" id="avatarPlaceholder" style="background: linear-gradient(135deg, #212529, #495057);">
+                                {{ current_user.name[0] | upper if current_user.name else 'P' }}
+                            </div>
+                            <img src="" class="avatar-preview d-none" id="imagePreview" alt="Profile">
+                        {% endif %}
+                        
+                        <label for="profile_photo" class="avatar-edit-badge">
+                            <i class="bi bi-camera-fill"></i>
+                        </label>
+                        <input type="file" id="profile_photo" name="profile_photo" accept="image/*" class="d-none" onchange="previewAndSubmit()">
+                    </div>                        
+                    <h5 class="fw-bold text-dark mb-1">{{ current_user.name }}</h5>
+                    <p class="text-muted small mb-0">System Authentication ID: {{ current_user.staff_id }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <form action="{{ url_for('principal_overview', staff_id=current_user.staff_id) }}" method="POST" enctype="multipart/form-data" id="profileForm">
+                <!-- Right Panel Side Pane: Account Identity Modification Parameters Sheet -->                
+                <div class="card profile-card p-4">
+                    <div class="card-body">
+                        <h4 class="fw-bold text-dark mb-4"><i class="bi bi-shield-lock-fill text-dark"></i> Admin Credentials</h4>
+                        
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label info-label">Display Administrator Name</label>
+                                <input type="text" class="form-control rounded-3 py-2.5 fw-medium" name="display_name" value="{{ current_user.name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label info-label">Login System Email</label>
+                                <input type="email" class="form-control rounded-3 py-2.5 text-muted bg-light" value="{{ current_user.email }}" disabled title="System administrative emails are locked.">
+                            </div>
+                        </div>
+
+                        <hr class="text-black-50 my-4" style="opacity: 0.1;">
+
+                        <h5 class="fw-bold text-dark mb-3"><i class="bi bi-key-fill text-secondary"></i> Security Access Passwords</h5>
+                        <p class="text-muted small mb-3">Leave empty if you do not want to alter administrative access passwords.</p>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label info-label">New Security Password</label>
+                                <input type="password" class="form-control rounded-3 py-2.5" name="new_password" id="new_password" placeholder="••••••••">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label info-label">Confirm New Password</label>
+                                <input type="password" class="form-control rounded-3 py-2.5" name="confirm_password" id="confirm_password" placeholder="••••••••">
+                            </div>
+                        </div>
+
+                        <div class="mt-4 pt-2 text-end">
+                            <button type="submit" class="btn btn-dark px-4 py-2.5 fw-bold rounded-3 shadow-sm">
+                                <i class="bi bi-check-circle-fill"></i> Save Admin Updates
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                </div>
+            </form>
+        </div>
+    </div>    
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Real-time file picker interface preview handler logic
+    document.getElementById('profile_photo').addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewImg = document.getElementById('imagePreview');
+                const placeholderDiv = document.getElementById('avatarPlaceholder');
+                
+                previewImg.src = e.target.result;
+                previewImg.classList.remove('d-none');
+                if (placeholderDiv) placeholderDiv.classList.add('d-none');
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Front-end structural validation guard rules for password safety compliance checks
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+        const password = document.getElementById('new_password').value;
+        const confirm = document.getElementById('confirm_password').value;
+
+        if (password && password.length < 6) {
+            e.preventDefault();
+            alert("Security Error: Administrative passcodes must be 6 or more characters long.");
+            return;
+        }
+
+        if (password !== confirm) {
+            e.preventDefault();
+            alert("Validation Error: 'New Password' and 'Confirm New Password' configurations mismatch.");
+        }
+    });
+    async function previewAndSubmit() {
+        const fileInput = document.getElementById('profile_photo');
+        const imagePreview = document.getElementById('imagePreview');
+        const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+
+        if (fileInput.files && fileInput.files[0]) {
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreview.classList.remove('d-none');
+                if (avatarPlaceholder) avatarPlaceholder.classList.add('d-none');
+            };
+            reader.readAsDataURL(file);
+            const formData = new FormData();
+            formData.append('profile_photo', file);
+
+            try {
+                const response = await fetch("{{ url_for('upload_avatar_api') }}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': "{{ csrf_token() if csrf_token else '' }}"
+                    },
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.success) {
+                    console.log("Avatar saved to cloud database successfully.");
+                    document.querySelectorAll('.rounded-circle.border.mb-2').forEach(img => {
+                        img.src = imagePreview.src;
+                    });
+                } else {
+                    alert("Upload Failed");
+                }
+            } catch (error) {
+                console.error("Network upload error:", error);
+                alert("Unexpected error occurred while uploading the avatar. Please try again.");
+            }
+        }
+    }
+</script>
+{% endblock %}

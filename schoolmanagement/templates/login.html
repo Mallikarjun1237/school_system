@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>{{ title | default('School Login') }}</title>
+    <!-- <style>
+        body{
+            background: linear-gradient(90deg,#0dcaf0, #8258c1);
+        }
+        .container { margin-top: 3%; }
+        .custom-card {
+            width: 100%;
+            max-width: 450px;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+        .card-header {
+            background: linear-gradient(135deg, #0d6efd, #0dcaf0);
+            border-bottom: none;
+        }
+        .card-header-links a {
+            color: rgba(255, 255, 255, 0.75);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        .card-header-links a:hover {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        /* The Active Highlight Tab Style */
+        .card-header-links a.active-tab {
+            color: #0d6efd !important;
+            background-color: #ffffff !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+    </style> -->
+    <style>
+        /* --- GLOBAL & CANVAS BACKGROUND RESET --- */
+        body {
+            background-color: #0e1223 !important;
+            color: #f1f5f9 !important;
+            font-family: 'Inter', sans-serif !important;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        #tech-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 0;
+            pointer-events: none; /* Allows user clicks to pass through to inputs */
+        }
+
+        /* --- STRENGTHEN ELEMENT VISIBILITY ON HIGHER LAYERS --- */
+        .navbar, .container {
+            position: relative;
+            z-index: 10;
+        }
+
+        /* --- MODERN HIGH-TECH HEADER --- */
+        .navbar {
+            background: rgba(11, 19, 43, 0.4) !important;
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 180, 216, 0.2) !important;
+        }
+        .navbar p {
+            color: #ffffff !important;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 10px rgba(0, 180, 216, 0.3);
+        }
+
+        /* --- GLASSMORPHISM CARD DESIGN --- */
+        .custom-card {
+            background: rgba(11, 19, 43, 0.45) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(0, 180, 216, 0.25) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5) !important;
+            margin-top: 3rem;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .card-header {
+            background: transparent !important;
+            border-bottom: 1px solid rgba(0, 180, 216, 0.15) !important;
+        }
+
+        /* --- DYNAMIC LINK ROLE TABS --- */
+        .card-header-links a {
+            text-decoration: none;
+            color: #94a3b8;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .card-header-links a:hover {
+            color: #00b4d8;
+            background: rgba(0, 180, 216, 0.05);
+        }
+
+        .card-header-links a.active-tab {
+            color: #ffffff !important;
+            background: rgba(0, 180, 216, 0.2) !important;
+            border-color: rgba(0, 180, 216, 0.4) !important;
+            box-shadow: 0 0 10px rgba(0, 180, 216, 0.1);
+        }
+
+        /* --- FORMS & FLOATING FIELD MODERNIZE --- */
+        .form-floating input {
+            background-color: rgba(5, 7, 15, 0.75) !important;
+            border: 1px solid rgba(148, 163, 184, 0.25) !important;
+            color: #ffffff !important;
+            border-radius: 8px !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-floating input:focus {
+            border-color: #00b4d8 !important;
+            background-color: rgba(5, 7, 15, 0.8) !important;
+            box-shadow: 0 0 12px rgba(0, 180, 216, 0.5) !important;
+        }
+
+        .form-floating label {
+            color: #1d1e20 !important;
+        }
+
+        /* --- THEME BUTTONS AND ANCHORS --- */
+        .btn-primary {
+            background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%) !important;
+            border: none !important;
+            box-shadow: 0 4px 15px rgba(0, 180, 216, 0.3) !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 180, 216, 0.5) !important;
+            filter: brightness(1.1);
+        }
+
+        .card-footer a {
+            color: #00b4d8 !important;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .card-footer a:hover {
+            color: #90e0ef !important;
+            text-decoration: underline !important;
+        }
+    </style>
+</head>
+<!-- <body>
+    <div class="navbar container d-flex justify-content-center rounded rounded-4 shadow-sm mt-3 py-3" style="background: linear-gradient(135deg, #0d6efd, #0dcaf0);">
+        <p class="fs-1 fw-bold text-light mb-0">School Management System</p>
+    </div>
+    
+    <div class="container d-flex justify-content-center align-items-center">
+        <div class="card custom-card">
+
+            <div class="card-header py-4 text-center">
+                <div class="d-flex justify-content-center gap-2 flex-wrap card-header-links">
+                    <a href="{{ url_for('login', role='TEACHER') }}" class="{{ 'active-tab' if current_role == 'TEACHER' }}">Teachers</a>
+                    <a href="{{ url_for('login', role='CLASS_TEACHER') }}" class="{{ 'active-tab' if current_role == 'CLASS_TEACHER' }}">Class Teachers</a>
+                    <a href="{{ url_for('login', role='PRINCIPAL') }}" class="{{ 'active-tab' if current_role == 'PRINCIPAL' }}">Principal</a>
+                </div>
+            </div>
+            
+            // Flash Message Injection Point
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show mx-4 mt-3 mb-0" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+            //Card Body with Form and Floating Labels
+            <div class="card-body p-4 p-md-5">
+              <form method="POST" action="{{ url_for('login', role=current_role) }}">
+                  
+                  
+                  <div class="form-floating mb-4">
+                  <input type="email" class="form-control" id="floatingEmail" name="email" placeholder="name@example.com" required>
+                  <label for="floatingEmail">Email Address</label>
+                  </div>
+                  
+                 
+                  <div class="form-floating mb-4">
+                  <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password" required>
+                  <label for="floatingPassword">Password</label>
+                  </div>
+
+                  <div class="card-footer bg-white border-0 p-0 pt-2">
+                      <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm rounded-3">
+                          Login as {{ current_role.replace('_', ' ').title() }}
+                      </button>
+                      <div class="d-flex justify-content-between mt-3">
+                          <small><a href="{{ url_for('request_reset') }}" class="text-decoration-none">Forgot password?</a></small>
+                          <small><a href="{{ url_for('register_staff') }}" class="text-decoration-none">Need an Account?</a></small>
+                      </div>
+                  </div>
+              </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body> -->
+<body>
+    <!-- BACKGROUND ANIMATION CANVAS INSTANCE -->
+    <canvas id="tech-canvas"></canvas>
+
+    <!-- Main System Branding Header -->
+    <div class="navbar container d-flex justify-content-center rounded rounded-4 shadow-sm mt-3 py-3">
+        <p class="fs-1 fw-bold text-light mb-0">School Management System</p>
+    </div>
+    
+    <div class="container d-flex justify-content-center align-items-center">
+        <div class="card custom-card">
+            <!-- Dynamic Role Navigation Headers -->
+            <div class="card-header py-4 text-center">
+                <div class="d-flex justify-content-center gap-2 flex-wrap card-header-links">
+                    <a href="{{ url_for('login', role='TEACHER') }}" class="{{ 'active-tab' if current_role == 'TEACHER' }}">Teachers</a>
+                    <a href="{{ url_for('login', role='CLASS_TEACHER') }}" class="{{ 'active-tab' if current_role == 'CLASS_TEACHER' }}">Class Teachers</a>
+                    <a href="{{ url_for('login', role='PRINCIPAL') }}" class="{{ 'active-tab' if current_role == 'PRINCIPAL' }}">Principal</a>
+                </div>
+            </div>
+            
+            <!-- Flash Message Injection Point -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show mx-4 mt-3 mb-0" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Card Body with Form and Floating Labels -->
+            <div class="card-body p-4 p-md-5">
+              <form method="POST" action="{{ url_for('login', role=current_role) }}">
+                  
+                  <!-- Email Input -->
+                  <div class="form-floating mb-4">
+                      <input type="email" class="form-control" id="floatingEmail" name="email" placeholder="name@example.com" required>
+                      <label for="floatingEmail">Email Address</label>
+                  </div>
+                  
+                  <!-- Password Input -->
+                  <div class="form-floating mb-4">
+                      <input type="password" class="form-control" id="floatingPassword" name="password" placeholder="Password" required>
+                      <label for="floatingPassword">Password</label>
+                  </div>
+
+                  <!-- Submit Action Area -->
+                  <div class="card-footer bg-transparent border-0 p-0 pt-2">
+                      <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm rounded-3">
+                          Login as {{ current_role.replace('_', ' ').title() }}
+                      </button>
+                      <div class="d-flex justify-content-between mt-3">
+                          <small><a href="{{ url_for('request_reset') }}" class="text-decoration-none">Forgot password?</a></small>
+                          <small><a href="{{ url_for('register_staff') }}" class="text-decoration-none">Need an Account?</a></small>
+                      </div>
+                  </div>
+              </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Execution script -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- AUTOMATED GRAPHICS WEB ENGINE -->
+    <script>
+        const canvas = document.getElementById('tech-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.35;
+                this.vy = (Math.random() - 0.5) * 0.35;
+                this.radius = Math.random() * 1.5 + 0.5;
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 180, 216, 0.65)';
+                ctx.fill();
+            }
+        }
+
+        // Dynamically scales the particle count based on resolution space
+        const particleCount = Math.min(800, Math.floor((canvas.width * canvas.height) / 16000));
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#05070f';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < particles.length; i++) {
+                particles[i].update();
+                particles[i].draw();
+                
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < 130) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.strokeStyle = `rgba(0, 180, 216, ${(1 - dist / 130) * 0.12})`;
+                        ctx.lineWidth = 0.8;
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+</html>

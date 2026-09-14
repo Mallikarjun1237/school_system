@@ -1,0 +1,123 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Faculty Workload & Performance Monitoring{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid p-0">
+    
+    <!-- Title Section Header -->
+    <div class="mb-4">
+        <span class="text-muted small fw-semibold text-uppercase tracking-wider">Quality Assurance</span>
+        <h2 class="fw-bold mb-0 text-dark">Teacher Monitoring Hub</h2>
+    </div>
+
+    <!-- Faculty Roster Cards Grid Display -->
+    <div class="row g-4">
+        {% for t in teachers %}
+            {% set workload = workload_map.get(t.staff_id, 0) %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden p-3 h-100" style="border: 1px solid #e2e8f0 !important;">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        {% if t.profile_pic and t.profile_pic != 'default_avatar.png' %}
+                            <img src="{{ url_for('get_user_avatar', staff_id=t.staff_id) }}" class="rounded-circle border" style="width: 52px; height: 52px; object-fit: cover;">
+                        {% else %}
+                            <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold fs-5" style="width: 52px; height: 52px;">
+                                {{ t.name[0] | upper if t.name else 'T' }}
+                            </div>
+                        {% endif %}
+                        <div class="text-truncate">
+                            <h6 class="fw-bold text-dark mb-0 text-truncate">{{ t.name }}</h6>
+                            <small class="text-muted font-monospace">{{ t.staff_id }}</small>
+                        </div>
+                    </div>
+
+                    <!-- Workload Progress Metrics -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between small fw-semibold text-secondary mb-1">
+                            <span>Course Section Workload</span>
+                            <span class="text-dark">{{ workload }} Allocated</span>
+                        </div>
+                        <div class="progress rounded-pill" style="height: 7px;">
+                            <!-- Progress bar adjustments dynamically derived based on target max scale of 5 allocations -->
+                            {% set pct = (workload / 5 * 100) if workload < 5 else 100 %}
+                               <div class="progress-bar rounded-pill {% if workload >= 4 %}bg-danger{% elif workload >= 2 %}bg-success{% else %}bg-warning{% endif %}"
+                                   role="progressbar" style="width: {{ pct }}%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Operational Status Flag & Remarks Preview -->
+                    <div class="mb-3 bg-light p-2.5 rounded-3 border border-light">
+                        <div class="d-flex justify-content-between mb-1 small">
+                            <span class="text-muted font-weight-bold">Status:</span>
+                            <span class="badge {% if t.status == 'Active' %}bg-success-subtle text-success{% else %}bg-danger-subtle text-danger{% endif %} px-2 py-0.5">
+                                {{ t.status }}
+                            </span>
+                        </div>
+                        <span class="text-muted small d-block text-truncate-2" style="font-size: 0.85rem; height: 38px; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                            <strong>Remarks:</strong> {{ t.admin_remarks if t.admin_remarks else 'No administrative remarks logged yet.' }}
+                        </span>
+                    </div>
+
+                    <!-- Action Trigger Button -->
+                    <button class="btn btn-outline-dark w-100 btn-sm rounded-3 fw-bold py-1.5" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#editMonitorModal{{ t.staff_id }}">
+                        <i class="bi bi-pencil-square"></i> Manage Profile Records
+                    </button>
+                </div>
+            </div>
+
+            <!-- Management Modal Update Sheet Container Overlay Component -->
+            <div class="modal fade" id="editMonitorModal{{ t.staff_id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content rounded-4 border-0 shadow">
+                        <div class="modal-header border-bottom-0 bg-light p-3 rounded-top-4">
+                            <h5 class="modal-title fw-bold text-dark">Administrative Evaluation: {{ t.name }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <form action="" method="POST">
+                            <input type="hidden" name="target_staff_id" value="{{ t.staff_id }}">
+                            <div class="modal-body p-4">
+                                
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-secondary">Operational Status</label>
+                                    <select name="status" class="form-select rounded-3">
+                                        <option value="Active" {% if t.status == 'Active' %}selected{% endif %}>Active Employment</option>
+                                        <option value="Suspended" {% if t.status == 'Suspended' %}selected{% endif %}>Suspended / On Leave</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold text-secondary">Principal Management Feedback Remarks</label>
+                                    <textarea name="admin_remarks" class="form-control rounded-3 font-medium" rows="4" placeholder="Enter comments, workload balances, structural alerts or updates..."></textarea>
+                                </div>
+                                <div class="text-muted fs-7 small mb-3">Previous: <em>{{ t.admin_remarks if t.admin_remarks else 'None' }}</em></div>
+
+                            </div>
+                            <div class="modal-footer border-top-0 pt-0">
+                                <button type="button" class="btn btn-light rounded-3 fw-medium" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-dark rounded-3 fw-boldpx-3">Commit Management Updates</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12 text-center py-5 text-muted">
+                <i class="bi bi-person-x fs-1 d-block mb-2 text-black-50" style="opacity: 0.3;"></i>
+                No faculty teacher accounts are registered within the school directory database.
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Automate locking the accordion menu frame expanded state for visual mapping continuity
+    window.addEventListener('DOMContentLoaded', () => {
+        const pCollapse = new bootstrap.Collapse(document.getElementById('principalControlCollapse'), { toggle: false });
+        pCollapse.show();
+    });
+</script>
+{% endblock %}

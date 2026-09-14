@@ -1,0 +1,127 @@
+{% extends "dashboard_base.html" %}
+
+{% block title %}Academic Infrastructure Setup{% endblock %}
+
+{% block dashboard_content %}
+<div class="container-fluid p-0">
+    
+    <!-- Header Summary Panels -->
+    <div class="mb-4">
+        <span class="text-muted small fw-semibold text-uppercase tracking-wider">Configuration Management</span>
+        <h2 class="fw-bold mb-0 text-dark">Setup Academic Fields</h2>
+    </div>
+
+    <div class="row g-4">
+        
+        <!-- Column 1: Classes Creation & Grid Directory -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white mb-4" style="border: 1px solid #e2e8f0 !important;">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-building text-primary"></i> Create Class</h5>
+                <form action="" method="POST">
+                    <input type="hidden" name="form_type" value="add_class">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Classroom Block Name</label>
+                        <input type="text" name="class_name" class="form-control rounded-3" placeholder="e.g., 10-A, 9-B" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 rounded-3 fw-bold">Add Class Division</button>
+                </form>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden" style="border: 1px solid #e2e8f0 !important; max-height: 300px; overflow-y: auto;">
+                <div class="p-3 bg-light border-bottom fw-bold text-secondary small">Active System Divisions</div>
+                <ul class="list-group list-group-flush">
+                    {% for c in classes %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center fw-medium text-dark">
+                            Class {{ c.class_name }}
+                            <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill"><i class="bi bi-check"></i></span>
+                        </li>
+                    {% else %}
+                        <li class="list-group-item text-center text-muted small py-3">No classrooms registered.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Column 2: Subjects Creation & Catalog Sheet -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white mb-4" style="border: 1px solid #e2e8f0 !important;">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-journal-bookmark-fill text-success"></i> Add Subject</h5>
+                <form action="" method="POST">
+                    <input type="hidden" name="form_type" value="add_subject">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Subject Code ID</label>
+                        <input type="text" name="subject_id" class="form-control rounded-3" placeholder="e.g., SUB101, MAT20" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Subject Full Title</label>
+                        <input type="text" name="subject_name" class="form-control rounded-3" placeholder="e.g., Mathematics" required>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 rounded-3 fw-bold">Add Subject Fields</button>
+                </form>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden" style="border: 1px solid #e2e8f0 !important; max-height: 210px; overflow-y: auto;">
+                <div class="p-3 bg-light border-bottom fw-bold text-secondary small">Registered Subjects Catalog</div>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0 align-middle">
+                        <tbody>
+                            {% for s in subjects %}
+                                <tr>
+                                    <td class="ps-3 text-primary fw-bold"><code>{{ s.subject_id }}</code></td>
+                                    <td class="text-dark fw-medium">{{ s.subject_name }}</td>
+                                </tr>
+                            {% else %}
+                                <tr><td class="text-center text-muted small py-3">No subjects available.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 3: Exam Term Allocator & Historical Log Grid -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm p-4 rounded-4 bg-white mb-4" style="border: 1px solid #e2e8f0 !important;">
+                <h5 class="fw-bold text-dark mb-3"><i class="bi bi-pencil-square text-info"></i> Create Exam Type</h5>
+                <form action="" method="POST">
+                    <input type="hidden" name="form_type" value="add_exam">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Exam Term Label</label>
+                        <input type="text" name="exam_name" class="form-control rounded-3" placeholder="e.g., Mid-Term, Final Exam" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Academic Target Year</label>
+                        <input type="text" name="academic_year" class="form-control rounded-3" placeholder="e.g., 2026" value="2026">
+                    </div>
+                    <button type="submit" class="btn btn-info w-100 rounded-3 text-white fw-bold">Register Exam Cycle</button>
+                </form>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 bg-white overflow-hidden" style="border: 1px solid #e2e8f0 !important; max-height: 210px; overflow-y: auto;">
+                <div class="p-3 bg-light border-bottom fw-bold text-secondary small">Active Exam Evaluation Terms</div>
+                <ul class="list-group list-group-flush">
+                    {% for e in exams %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center fw-medium text-dark small">
+                            {{ e.exam_name }}
+                            <span class="badge bg-secondary rounded-pill font-monospace">{{ e.academic_year }}</span>
+                        </li>
+                    {% else %}
+                        <li class="list-group-item text-center text-muted small py-3">No evaluation cycles built.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Automate locking the accordion menu frame expanded state for visual mapping continuity
+    window.addEventListener('DOMContentLoaded', () => {
+        const pCollapse = new bootstrap.Collapse(document.getElementById('principalControlCollapse'), { toggle: false });
+        pCollapse.show();
+    });
+</script>
+{% endblock %}
